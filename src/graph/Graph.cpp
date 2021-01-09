@@ -1,3 +1,4 @@
+#include <fmt/core.h>
 #include <fstream>
 #include <graph/Graph.hpp>
 #include <nonstd/span.hpp>
@@ -66,10 +67,6 @@ auto graph::parseFMIFile(std::string_view path) noexcept
 
     in >> number_of_nodes >> number_of_edges;
 
-    fmt::print("number of nodes {}\nnumber of edges {}\n",
-               number_of_nodes,
-               number_of_edges);
-
     Node node;
     Node id2;
     double latitude;
@@ -91,7 +88,7 @@ auto graph::parseFMIFile(std::string_view path) noexcept
 
     for(size_t i{0}; i < number_of_edges; i++) {
         in >> from >> to >> cost >> speed >> type;
-        edges[from].emplace_back(cost, to);
+        edges[from].emplace_back(to, cost);
     }
 
     return Graph{edges};
