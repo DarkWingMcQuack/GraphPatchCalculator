@@ -7,11 +7,18 @@
 
 using graph::Graph;
 
-Graph::Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list) noexcept
+Graph::Graph(std::vector<std::vector<std::pair<Node, Distance>>> adj_list) noexcept
     : offset_(adj_list.size() + 1, 0)
 {
     for(auto i = 0; i < adj_list.size(); i++) {
-        const auto& neigs = adj_list[i];
+        auto neigs = std::move(adj_list[i]);
+
+        std::sort(std::begin(neigs),
+                  std::end(neigs),
+                  [](auto lhs, auto rhs) {
+                      return lhs.first < rhs.first;
+                  });
+
         neigbours_.insert(std::end(neigbours_),
                           std::begin(neigs),
                           std::end(neigs));
@@ -31,6 +38,20 @@ auto Graph::getNeigboursOf(Node node) const noexcept
     const auto* end = &neigbours_[end_offset];
 
     return nonstd::span{start, end};
+}
+
+auto Graph::edgeExists(Node from, Node to) const noexcept
+    -> bool
+{
+    auto neigs = getNeigboursOf(from);
+    auto search_edge = std::pair{to, 0};
+
+    return std::binary_search(std::begin(neigs),
+                              std::end(neigs),
+                              search_edge,
+                              [](auto lhs, auto rhs) {
+                                  return lhs.first < rhs.first;
+                              });
 }
 
 auto Graph::size() const noexcept
