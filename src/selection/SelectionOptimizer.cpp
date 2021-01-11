@@ -244,10 +244,10 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
 
 
     target_selections_[node].erase(
-        std::remove_if(std::begin(source_selections_[node]),
-                       std::end(source_selections_[node]),
+        std::remove_if(std::begin(target_selections_[node]),
+                       std::end(target_selections_[node]),
                        [&](auto pair) {
                            return new_selection_set.count(pair.first) == 0;
                        }),
-        std::end(source_selections_[node]));
+        std::end(target_selections_[node]));
 }
