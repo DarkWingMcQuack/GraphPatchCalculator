@@ -129,7 +129,7 @@ auto Dijkstra::computeDistance(graph::Node source, graph::Node target) noexcept
         //when reusing the pq
         pq_.pop();
 
-        auto neigbours = graph_.getNeigboursOf(current_node);
+        auto neigbours = graph_.getForwardNeigboursOf(current_node);
 
         for(auto [neig, distance] : neigbours) {
 

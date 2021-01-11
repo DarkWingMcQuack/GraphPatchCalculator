@@ -17,12 +17,13 @@ using pathfinding::Dijkstra;
 using selection::FullNodeSelectionCalculator;
 namespace fs = std::filesystem;
 
+using SelectionCalculator = FullNodeSelectionCalculator<Dijkstra, CachingDijkstra>;
+
 auto runSelection(const graph::Graph &graph,
                   std::string_view result_folder)
 {
     utils::Timer t;
-    FullNodeSelectionCalculator<Dijkstra, CachingDijkstra> selection_calculator{
-        graph};
+    SelectionCalculator selection_calculator{graph};
     auto selections = selection_calculator.calculateFullNodeSelection();
 
     fmt::print("runtime: {}\n", t.elapsed());

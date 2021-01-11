@@ -55,7 +55,7 @@ public:
                     auto source_dist = source_dist_opt.value();
                     source_patch_.emplace_back(current, source_dist);
 
-                    auto neigbours = graph_.getNeigboursOf(current);
+                    auto neigbours = graph_.getForwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
                         if(!isLeftSettled(neig)) {
                             settleLeft(neig);
@@ -75,7 +75,7 @@ public:
 
                     target_patch_.emplace_back(current, target_dist);
 
-                    auto neigbours = graph_.getNeigboursOf(current);
+                    auto neigbours = graph_.getForwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
                         if(!isRightSettled(neig)) {
                             settleRight(neig);

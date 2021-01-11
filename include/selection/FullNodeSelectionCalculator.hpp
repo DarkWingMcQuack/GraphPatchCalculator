@@ -42,10 +42,7 @@ public:
         progresscpp::ProgressBar bar{graph_.size(), 80ul};
         auto done_counter = countDoneNodes();
 
-        while(std::any_of(
-            std::begin(all_to_all_),
-            std::end(all_to_all_),
-            [](const auto& x) { return !x.empty(); })) {
+        while(!done()) {
 
             auto [first, second] = getRandomRemainingPair();
 
@@ -61,7 +58,10 @@ public:
 
             auto selection = std::move(selection_opt.value());
 
+            fmt::print("weight before optimization: {}\n", selection.weight());
             optimizeSelection(selection);
+            fmt::print("weight after optimization: {}\n", selection.weight());
+
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
 
@@ -79,6 +79,7 @@ public:
 
         return calculated_selections;
     }
+
 
     [[nodiscard]] auto getRandomRemainingPair() const noexcept
         -> std::pair<graph::Node, graph::Node>
@@ -183,7 +184,7 @@ public:
         }
     }
 
-    auto areAllSourceSettledFor(const Patch& sources, graph::Node target) const noexcept
+    [[nodiscard]] auto areAllSourceSettledFor(const Patch& sources, graph::Node target) const noexcept
         -> bool
     {
         return std::all_of(
@@ -196,7 +197,7 @@ public:
             });
     }
 
-    auto areAllTargetSettledFor(graph::Node source, const Patch& targets) const noexcept
+    [[nodiscard]] auto areAllTargetSettledFor(graph::Node source, const Patch& targets) const noexcept
         -> bool
     {
         const auto& source_vec = all_to_all_[source];
@@ -213,7 +214,7 @@ public:
             });
     }
 
-    auto countDoneNodes() const noexcept
+    [[nodiscard]] auto countDoneNodes() const noexcept
         -> std::size_t
     {
         return std::count_if(std::begin(all_to_all_),
@@ -232,6 +233,15 @@ public:
         if(done) {
             all_to_all_[n].clear();
         }
+    }
+
+    [[nodiscard]] auto done() noexcept
+        -> bool
+    {
+        return std::all_of(
+            std::begin(all_to_all_),
+            std::end(all_to_all_),
+            [](const auto& x) { return x.empty(); });
     }
 
 private:

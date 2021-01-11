@@ -145,7 +145,7 @@ auto CachingDijkstra::computeDistance(graph::Node source,
         // when reusing the pq
         pq_.pop();
 
-        auto neigbours = graph_.getNeigboursOf(current_node);
+        auto neigbours = graph_.getForwardNeigboursOf(current_node);
 
         for(auto [neig, dist] : neigbours) {
             auto neig_dist = getDistanceTo(neig);

@@ -1,3 +1,4 @@
+#include "utils/Range.hpp"
 #include <fmt/core.h>
 #include <fstream>
 #include <graph/Graph.hpp>
@@ -7,9 +8,15 @@
 
 using graph::Graph;
 
-Graph::Graph(std::vector<std::vector<std::pair<Node, Distance>>> adj_list) noexcept
-    : offset_(adj_list.size() + 1, 0)
+namespace {
+
+auto adjListToOffsetArray(std::vector<std::vector<std::pair<graph::Node, graph::Distance>>> adj_list)
+    -> std::pair<std::vector<std::pair<graph::Node, graph::Distance>>,
+                 std::vector<size_t>>
 {
+    std::vector<std::pair<graph::Node, graph::Distance>> neigbours;
+    std::vector<std::size_t> offset(adj_list.size() + 1);
+
     for(auto i = 0; i < adj_list.size(); i++) {
         auto neigs = std::move(adj_list[i]);
 
@@ -19,31 +26,90 @@ Graph::Graph(std::vector<std::vector<std::pair<Node, Distance>>> adj_list) noexc
                       return lhs.first < rhs.first;
                   });
 
-        neigbours_.insert(std::end(neigbours_),
-                          std::begin(neigs),
-                          std::end(neigs));
+        neigbours.insert(std::end(neigbours),
+                         std::begin(neigs),
+                         std::end(neigs));
 
-        offset_[i + 1] = neigbours_.size();
+        offset[i + 1] = neigbours.size();
     }
 
-    neigbours_.emplace_back(std::numeric_limits<Node>::max(), UNREACHABLE);
+    neigbours.emplace_back(std::numeric_limits<graph::Node>::max(),
+                           graph::UNREACHABLE);
+
+    return std::pair{std::move(neigbours),
+                     std::move(offset)};
 }
 
-auto Graph::getNeigboursOf(Node node) const noexcept
+auto reverseAdjList(const std::vector<std::vector<std::pair<graph::Node, graph::Distance>>>& adj_list)
+    -> std::vector<std::vector<std::pair<graph::Node, graph::Distance>>>
+{
+    std::vector<std::vector<std::pair<graph::Node, graph::Distance>>> reverse_list(adj_list.size());
+
+    for(const auto& [target, neigs] : utils::enumerate(adj_list)) {
+        for(auto [source, dist] : neigs) {
+            reverse_list[source].emplace_back(target, dist);
+        }
+    }
+
+    return reverse_list;
+}
+
+} // namespace
+
+Graph::Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list) noexcept
+{
+    auto backward_adj_list = reverseAdjList(adj_list);
+
+    auto [forward_neigs, forward_offset] = adjListToOffsetArray(adj_list);
+    forward_neigbours_ = std::move(forward_neigs);
+    forward_offset_ = std::move(forward_offset);
+
+
+    auto [backward_neigs, backward_offset] = adjListToOffsetArray(backward_adj_list);
+    backward_neigbours_ = std::move(backward_neigs);
+    backward_offset_ = std::move(backward_offset);
+}
+
+auto Graph::getForwardNeigboursOf(Node node) const noexcept
     -> nonstd::span<const std::pair<Node, Distance>>
 {
-    const auto start_offset = offset_[node];
-    const auto end_offset = offset_[node + 1];
-    const auto* start = &neigbours_[start_offset];
-    const auto* end = &neigbours_[end_offset];
+    const auto start_offset = forward_offset_[node];
+    const auto end_offset = forward_offset_[node + 1];
+    const auto* start = &forward_neigbours_[start_offset];
+    const auto* end = &forward_neigbours_[end_offset];
 
     return nonstd::span{start, end};
 }
 
-auto Graph::edgeExists(Node from, Node to) const noexcept
+auto Graph::getBackwardNeigboursOf(Node node) const noexcept
+    -> nonstd::span<const std::pair<Node, Distance>>
+{
+    const auto start_offset = backward_offset_[node];
+    const auto end_offset = backward_offset_[node + 1];
+    const auto* start = &backward_neigbours_[start_offset];
+    const auto* end = &backward_neigbours_[end_offset];
+
+    return nonstd::span{start, end};
+}
+
+auto Graph::forwardEdgeExists(Node from, Node to) const noexcept
     -> bool
 {
-    auto neigs = getNeigboursOf(from);
+    auto neigs = getForwardNeigboursOf(from);
+    auto search_edge = std::pair{to, 0};
+
+    return std::binary_search(std::begin(neigs),
+                              std::end(neigs),
+                              search_edge,
+                              [](auto lhs, auto rhs) {
+                                  return lhs.first < rhs.first;
+                              });
+}
+
+auto Graph::backwardEdgeExists(Node from, Node to) const noexcept
+    -> bool
+{
+    auto neigs = getForwardNeigboursOf(from);
     auto search_edge = std::pair{to, 0};
 
     return std::binary_search(std::begin(neigs),
@@ -57,7 +123,7 @@ auto Graph::edgeExists(Node from, Node to) const noexcept
 auto Graph::size() const noexcept
     -> std::size_t
 {
-    return offset_.size() - 1;
+    return forward_offset_.size() - 1;
 }
 
 
