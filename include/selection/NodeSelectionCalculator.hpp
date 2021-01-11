@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fmt/core.h>
 #include <graph/Graph.hpp>
 #include <pathfinding/Distance.hpp>
 #include <queue>
