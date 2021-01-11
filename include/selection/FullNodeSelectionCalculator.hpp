@@ -27,7 +27,9 @@ public:
             all_to_all_[first] = std::vector(graph.size(), true);
 
             for(auto second : utils::range(graph.size())) {
-                all_to_all_[first][second] = false;
+                if(first != second) {
+                    all_to_all_[first][second] = false;
+                }
             }
         }
     }
@@ -47,9 +49,13 @@ public:
 
             auto [first, second] = getRandomRemainingPair();
 
+
             auto selection_opt = node_selector_.calculateFullSelection(first, second);
             if(!selection_opt) {
+
                 all_to_all_[first][second] = true;
+                ifDoneClear(first);
+
                 continue;
             }
 
@@ -138,24 +144,8 @@ public:
             }
         }
 
-        for(auto [idx, _] : sources) {
-            auto done = std::all_of(std::begin(all_to_all_[idx]),
-                                    std::end(all_to_all_[idx]),
-                                    [](auto x) { return x; });
-
-            if(done) {
-                all_to_all_[idx].clear();
-            }
-        }
-
-        for(auto [idx, _] : targets) {
-            auto done = std::all_of(std::begin(all_to_all_[idx]),
-                                    std::end(all_to_all_[idx]),
-                                    [](auto x) { return x; });
-
-            if(done) {
-                all_to_all_[idx].clear();
-            }
+        for(auto [n, _] : sources) {
+            ifDoneClear(n);
         }
     }
 
@@ -173,8 +163,8 @@ public:
                 std::remove_if(std::begin(sources),
                                std::end(sources),
                                [&](auto pair) {
-                                   auto [node, _] = pair;
-                                   return areAllSettledFor(targets, node);
+                                   auto [source, _] = pair;
+                                   return areAllTargetSettledFor(source, targets);
                                }),
                 std::end(sources));
 
@@ -182,8 +172,8 @@ public:
                 std::remove_if(std::begin(targets),
                                std::end(targets),
                                [&](auto pair) {
-                                   auto [node, _] = pair;
-                                   return areAllSettledFor(sources, node);
+                                   auto [target, _] = pair;
+                                   return areAllSourceSettledFor(sources, target);
                                }),
                 std::end(targets));
 
@@ -193,21 +183,34 @@ public:
         }
     }
 
-    auto areAllSettledFor(const Patch& settled, graph::Node node) const noexcept
+    auto areAllSourceSettledFor(const Patch& sources, graph::Node target) const noexcept
         -> bool
     {
-        const auto& settle_vec = all_to_all_[node];
+        return std::all_of(
+            std::begin(sources),
+            std::end(sources),
+            [&](auto pair) {
+                auto [source, _] = pair;
+                return all_to_all_[source].empty()
+                    or all_to_all_[source][target];
+            });
+    }
 
-        if(settle_vec.empty()) {
+    auto areAllTargetSettledFor(graph::Node source, const Patch& targets) const noexcept
+        -> bool
+    {
+        const auto& source_vec = all_to_all_[source];
+        if(source_vec.empty()) {
             return true;
         }
 
-        return std::all_of(std::begin(settled),
-                           std::end(settled),
-                           [&](auto pair) {
-                               auto [node, _] = pair;
-                               return settle_vec[node];
-                           });
+        return std::all_of(
+            std::begin(targets),
+            std::end(targets),
+            [&](auto pair) {
+                auto [target, _] = pair;
+                return source_vec[target];
+            });
     }
 
     auto countDoneNodes() const noexcept
@@ -218,6 +221,17 @@ public:
                              [](const auto& b) {
                                  return b.empty();
                              });
+    }
+
+    auto ifDoneClear(graph::Node n) noexcept
+        -> void
+    {
+        auto done = std::all_of(std::begin(all_to_all_[n]),
+                                std::end(all_to_all_[n]),
+                                [](auto x) { return x; });
+        if(done) {
+            all_to_all_[n].clear();
+        }
     }
 
 private:
