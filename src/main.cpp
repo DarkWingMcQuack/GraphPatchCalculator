@@ -20,10 +20,11 @@ namespace fs = std::filesystem;
 using SelectionCalculator = FullNodeSelectionCalculator<Dijkstra, CachingDijkstra>;
 
 auto runSelection(const graph::Graph &graph,
-                  std::string_view result_folder)
+                  std::string_view result_folder,
+				  std::size_t prune_distance)
 {
     utils::Timer t;
-    SelectionCalculator selection_calculator{graph};
+    SelectionCalculator selection_calculator{graph, prune_distance};
     auto selections = selection_calculator.calculateFullNodeSelection();
 
     fmt::print("runtime: {}\n", t.elapsed());
@@ -62,10 +63,11 @@ auto main(int argc, char *argv[]) -> int
     const auto options = utils::parseArguments(argc, argv);
     const auto graph_file = options.getGraphFile();
     const auto graph = graph::parseFMIFile(graph_file).value();
+    const auto prune_distance = options.getPruneDistance();
     const auto graph_filename = utils::unquote(fs::path(graph_file).filename());
     const auto result_folder = fmt::format("./results/{}/", graph_filename);
 
     fs::create_directories(result_folder);
 
-    runSelection(graph, result_folder);
+    runSelection(graph, result_folder, prune_distance);
 }

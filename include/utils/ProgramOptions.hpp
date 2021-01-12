@@ -10,7 +10,8 @@ namespace utils {
 class ProgramOptions
 {
 public:
-    ProgramOptions(std::string graph_file,
+    ProgramOptions(std::size_t prune_distance,
+                   std::string graph_file,
                    std::optional<std::string> result_folder = std::nullopt);
 
     auto getGraphFile() const noexcept
@@ -22,7 +23,11 @@ public:
     auto getResultFolder() const noexcept
         -> std::string_view;
 
+    auto getPruneDistance() const noexcept
+        -> std::size_t;
+
 private:
+    std::size_t prune_distance_;
     std::string graph_file_;
     std::optional<std::string> separation_folder_;
 };

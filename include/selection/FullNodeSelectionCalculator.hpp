@@ -18,7 +18,8 @@ template<class PathFinder,
 class FullNodeSelectionCalculator
 {
 public:
-    FullNodeSelectionCalculator(const graph::Graph& graph)
+  FullNodeSelectionCalculator(const graph::Graph& graph,
+							  std::size_t prune_distance)
         : graph_(graph),
           all_to_all_(graph.size()),
           node_selector_(graph)
@@ -27,7 +28,7 @@ public:
             all_to_all_[first] = std::vector(graph.size(), true);
 
             for(auto second : utils::range(graph.size())) {
-                if(first != second) {
+			  if(node_selector_.distanceOf(first, second) < prune_distance) {
                     all_to_all_[first][second] = false;
                 }
             }

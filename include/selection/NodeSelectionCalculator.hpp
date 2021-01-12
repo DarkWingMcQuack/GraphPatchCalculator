@@ -21,6 +21,13 @@ public:
           source_settled_(graph_.size(), false),
           target_settled_(graph_.size(), false) {}
 
+    [[nodiscard]] auto distanceOf(graph::Node source,
+                                  graph::Node target) const noexcept
+        -> graph::Distance
+    {
+        return cached_path_finder_.findDistance(source, target);
+    }
+
 
     [[nodiscard]] auto calculateFullSelection(graph::Node source_start,
                                               graph::Node target_start) noexcept

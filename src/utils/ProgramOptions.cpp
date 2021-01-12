@@ -9,9 +9,11 @@ using std::string_literals::operator""s;
 
 
 
-ProgramOptions::ProgramOptions(std::string graph_file,
+ProgramOptions::ProgramOptions(std::size_t prune_distance,
+                               std::string graph_file,
                                std::optional<std::string> separation_folder)
-    : graph_file_(std::move(graph_file)),
+    : prune_distance_(prune_distance),
+      graph_file_(std::move(graph_file)),
       separation_folder_(std::move(separation_folder)) {}
 
 auto ProgramOptions::getGraphFile() const noexcept
@@ -32,6 +34,12 @@ auto ProgramOptions::getResultFolder() const noexcept
     return separation_folder_.value();
 }
 
+auto ProgramOptions::getPruneDistance() const noexcept
+    -> std::size_t
+{
+    return prune_distance_;
+}
+
 
 auto utils::parseArguments(int argc, char* argv[])
     -> ProgramOptions
@@ -40,6 +48,7 @@ auto utils::parseArguments(int argc, char* argv[])
 
     std::string graph_file;
     std::string result_folder;
+    std::size_t prune_distance = 1;
 
     app.add_option("-g,--graph",
                    graph_file,
@@ -52,13 +61,19 @@ auto utils::parseArguments(int argc, char* argv[])
                    "output folder")
         ->check(CLI::ExistingDirectory);
 
+    app.add_option("-p,--prune",
+                   prune_distance,
+                   "minimum distance between two nodes to be not pruned")
+        ->check(CLI::PositiveNumber);
+
     try {
         app.parse(argc, argv);
     } catch(const CLI::ParseError& e) {
         std::exit(app.exit(e));
     }
 
-    return ProgramOptions{std::move(graph_file),
+    return ProgramOptions{prune_distance,
+                          std::move(graph_file),
                           result_folder.empty()
                               ? std::optional<std::string>()
                               : std::optional{result_folder}};
