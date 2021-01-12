@@ -70,15 +70,6 @@ public:
                             source_candidates.push_back(neig);
                         }
                     }
-
-                    neigbours = graph_.getForwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isLeftSettled(neig)) {
-                            settleLeft(neig);
-                            touched_.push_back(neig);
-                            source_candidates.push_back(neig);
-                        }
-                    }
                 }
             }
 
@@ -92,15 +83,6 @@ public:
                     target_patch_.emplace_back(current, target_dist);
 
                     auto neigbours = graph_.getForwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isRightSettled(neig)) {
-                            settleRight(neig);
-                            touched_.push_back(neig);
-                            target_candidates.push_back(neig);
-                        }
-                    }
-
-                    neigbours = graph_.getBackwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
                         if(!isRightSettled(neig)) {
                             settleRight(neig);
