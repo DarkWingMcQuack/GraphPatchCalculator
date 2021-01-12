@@ -60,8 +60,6 @@ public:
             auto selection = std::move(selection_opt.value());
 
             optimizeSelection(selection);
-            fmt::print("weight after optimization: {}\n", selection.weight());
-
             eraseNodeSelection(selection);
 
             if(selection.weight() == 0) {
