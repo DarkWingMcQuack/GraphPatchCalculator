@@ -28,7 +28,7 @@ public:
             all_to_all_[first] = std::vector(graph.size(), true);
 
             for(auto second : utils::range(graph.size())) {
-                if(node_selector_.distanceOf(first, second) < prune_distance) {
+                if(first != second or node_selector_.distanceOf(first, second) > prune_distance) {
                     all_to_all_[first][second] = false;
                 }
             }
