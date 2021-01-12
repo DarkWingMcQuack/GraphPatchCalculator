@@ -62,7 +62,7 @@ public:
                     auto source_dist = source_dist_opt.value();
                     source_patch_.emplace_back(current, source_dist);
 
-                    auto neigbours = graph_.getForwardNeigboursOf(current);
+                    auto neigbours = graph_.getBackwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
                         if(!isLeftSettled(neig)) {
                             settleLeft(neig);
