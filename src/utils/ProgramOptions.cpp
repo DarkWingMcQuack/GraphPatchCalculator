@@ -5,16 +5,14 @@
 #include <utils/ProgramOptions.hpp>
 
 using utils::ProgramOptions;
-using std::string_literals::operator""s;
-
 
 
 ProgramOptions::ProgramOptions(std::size_t prune_distance,
                                std::string graph_file,
-                               std::optional<std::string> separation_folder)
+                               std::optional<std::string> result_folder)
     : prune_distance_(prune_distance),
       graph_file_(std::move(graph_file)),
-      separation_folder_(std::move(separation_folder)) {}
+      separation_folder_(std::move(result_folder)) {}
 
 auto ProgramOptions::getGraphFile() const noexcept
     -> std::string_view
