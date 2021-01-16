@@ -22,8 +22,6 @@ CachingDijkstra::CachingDijkstra(const graph::Graph& graph) noexcept
       distances_(graph.size(), UNREACHABLE),
       settled_(graph.size(), false),
       pq_(DijkstraQueueComparer{}),
-      before_(graph.size(), graph::NOT_REACHABLE),
-      betweenness_(graph.size(), 0),
       distance_cache_(graph.size(),
                       std::vector(graph.size(), UNREACHABLE))
 {
@@ -33,11 +31,6 @@ CachingDijkstra::CachingDijkstra(const graph::Graph& graph) noexcept
     for(auto from : utils::range(graph_.size())) {
         for(auto to : utils::range(graph.size())) {
             auto distance = computeDistance(from, to);
-            if(auto path_opt = extractShortestPath(from, to)) {
-                for(auto p : path_opt.value().getNodes()) {
-                    betweenness_[p]++;
-                }
-            }
             insertCache(from, to, distance);
         }
         bar++;
@@ -79,24 +72,6 @@ auto CachingDijkstra::destroy() noexcept
 }
 
 
-auto CachingDijkstra::extractShortestPath(graph::Node source, graph::Node target) const noexcept
-    -> std::optional<Path>
-{
-    //check if a path exists
-    if(UNREACHABLE == getDistanceTo(target)) {
-        return std::nullopt;
-    }
-
-    Path path{std::vector{target}};
-
-    while(path.getSource() != source) {
-        const auto& last_inserted = path.getSource();
-        path.pushFront(before_[last_inserted]);
-    }
-
-    return path;
-}
-
 auto CachingDijkstra::getDistanceTo(graph::Node n) const noexcept
     -> Distance
 {
@@ -116,7 +91,6 @@ auto CachingDijkstra::reset() noexcept
     for(auto n : touched_) {
         unSettle(n);
         setDistanceTo(n, UNREACHABLE);
-        before_[n] = graph::NOT_REACHABLE;
     }
     touched_.clear();
     pq_ = DijkstraQueue{DijkstraQueueComparer{}};
@@ -133,12 +107,6 @@ auto CachingDijkstra::settle(graph::Node n) noexcept
 {
 
     settled_[n] = true;
-}
-
-auto CachingDijkstra::betweenness(graph::Node n) const noexcept
-    -> std::size_t
-{
-    return betweenness_[n];
 }
 
 auto CachingDijkstra::isSettled(graph::Node n) noexcept
@@ -188,7 +156,6 @@ auto CachingDijkstra::computeDistance(graph::Node source,
                 touched_.emplace_back(neig);
                 setDistanceTo(neig, new_dist);
                 pq_.emplace(neig, new_dist);
-                before_[neig] = current_node;
             }
         }
     }

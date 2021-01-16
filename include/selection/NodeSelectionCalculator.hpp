@@ -16,7 +16,7 @@ class NodeSelectionCalculator
 public:
     NodeSelectionCalculator(const graph::Graph& graph)
         : cached_path_finder_(graph),
-          center_calculator_(graph, cached_path_finder_),
+          center_calculator_(graph),
           graph_(graph),
           source_settled_(graph_.size(), false),
           target_settled_(graph_.size(), false) {}
@@ -70,6 +70,15 @@ public:
                             source_candidates.push_back(neig);
                         }
                     }
+
+                    neigbours = graph_.getForwardNeigboursOf(current);
+                    for(auto [neig, dist] : neigbours) {
+                        if(!isLeftSettled(neig)) {
+                            settleLeft(neig);
+                            touched_.push_back(neig);
+                            source_candidates.push_back(neig);
+                        }
+                    }
                 }
             }
 
@@ -88,6 +97,15 @@ public:
                             settleRight(neig);
                             touched_.push_back(neig);
                             target_candidates.push_back(neig);
+                        }
+                    }
+
+                    neigbours = graph_.getBackwardNeigboursOf(current);
+                    for(auto [neig, dist] : neigbours) {
+                        if(!isLeftSettled(neig)) {
+                            settleLeft(neig);
+                            touched_.push_back(neig);
+                            source_candidates.push_back(neig);
                         }
                     }
                 }
@@ -221,7 +239,7 @@ private:
 
 private:
     CachedPathFinder cached_path_finder_;
-    SelectionCenterCalculator<PathFinder, CachedPathFinder> center_calculator_;
+    SelectionCenterCalculator<PathFinder> center_calculator_;
     const graph::Graph& graph_;
 
     std::vector<graph::Node> touched_;

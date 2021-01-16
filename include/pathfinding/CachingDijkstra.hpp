@@ -29,8 +29,6 @@ public:
                                     graph::Node target) const noexcept
         -> graph::Distance;
 
-    [[nodiscard]] auto betweenness(graph::Node n) const noexcept
-        -> std::size_t;
 
     auto destroy() noexcept -> void;
 
@@ -60,9 +58,6 @@ private:
     auto insertCache(graph::Node source, graph::Node target, graph::Distance dist) noexcept
         -> void;
 
-    [[nodiscard]] auto extractShortestPath(graph::Node source, graph::Node target) const noexcept
-        -> std::optional<Path>;
-
 private:
     const graph::Graph &graph_;
     std::vector<graph::Distance> distances_;
@@ -70,8 +65,6 @@ private:
     std::vector<graph::Node> touched_;
     DijkstraQueue pq_;
     std::optional<graph::Node> last_source_;
-    std::vector<graph::Node> before_;
-    std::vector<std::size_t> betweenness_;
 
     using DistanceCache = std::vector<std::vector<graph::Distance>>;
     DistanceCache distance_cache_;
