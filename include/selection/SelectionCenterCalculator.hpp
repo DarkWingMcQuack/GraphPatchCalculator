@@ -13,13 +13,14 @@
 
 namespace selection {
 
-template<class PathFinder>
+template<class PathFinder, class CachingPathFinder>
 class SelectionCenterCalculator
 {
 public:
-    SelectionCenterCalculator(const graph::Graph& graph)
+    SelectionCenterCalculator(const graph::Graph& graph, const CachingPathFinder& cache)
         : graph_(graph),
           path_finder_(graph_),
+          cache_(cache),
           settled_(graph_.size(), false) {}
 
     auto calculateCenter(graph::Node from, graph::Node to) noexcept
@@ -36,15 +37,11 @@ public:
             return std::nullopt;
         }
 
-        auto initial_center = std::move(initial_center_opt.value());
-
-        auto optimized = optimzeCenter(from,
-                                       to,
-                                       initial_center);
-
-        reset();
-
-        return optimized;
+        return *std::max_element(std::begin(path.getNodes()),
+                                 std::end(path.getNodes()),
+                                 [&](auto lhs, auto rhs) {
+                                     return cache_.betweenness(lhs) < cache_.betweenness(rhs);
+                                 });
     }
 
 private:
@@ -82,6 +79,7 @@ private:
 private:
     const graph::Graph& graph_;
     PathFinder path_finder_;
+    const CachingPathFinder& cache_;
     std::vector<bool> settled_;
     std::vector<std::size_t> touched_;
     pathfinding::DijkstraQueue pq_;

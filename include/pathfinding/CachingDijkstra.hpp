@@ -29,7 +29,11 @@ public:
                                     graph::Node target) const noexcept
         -> graph::Distance;
 
+    [[nodiscard]] auto betweenness(graph::Node n) const noexcept
+        -> std::size_t;
+
     auto destroy() noexcept -> void;
+
 
 private:
     [[nodiscard]] auto getDistanceTo(graph::Node n) const noexcept
@@ -49,6 +53,9 @@ private:
     [[nodiscard]] auto isSettled(graph::Node n) noexcept -> bool;
 
     auto reset() noexcept -> void;
+
+    [[nodiscard]] auto betweenness(graph::Node n) noexcept
+        -> std::size_t;
 
     auto insertCache(graph::Node source, graph::Node target, graph::Distance dist) noexcept
         -> void;

@@ -15,8 +15,8 @@ class NodeSelectionCalculator
 {
 public:
     NodeSelectionCalculator(const graph::Graph& graph)
-        : center_calculator_(graph),
-          cached_path_finder_(graph),
+        : cached_path_finder_(graph),
+          center_calculator_(graph, cached_path_finder_),
           graph_(graph),
           source_settled_(graph_.size(), false),
           target_settled_(graph_.size(), false) {}
@@ -220,8 +220,8 @@ private:
     }
 
 private:
-    SelectionCenterCalculator<PathFinder> center_calculator_;
     CachedPathFinder cached_path_finder_;
+    SelectionCenterCalculator<PathFinder, CachedPathFinder> center_calculator_;
     const graph::Graph& graph_;
 
     std::vector<graph::Node> touched_;

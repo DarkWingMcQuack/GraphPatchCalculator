@@ -135,6 +135,12 @@ auto CachingDijkstra::settle(graph::Node n) noexcept
     settled_[n] = true;
 }
 
+auto CachingDijkstra::betweenness(graph::Node n) const noexcept
+    -> std::size_t
+{
+    return betweenness_[n];
+}
+
 auto CachingDijkstra::isSettled(graph::Node n) noexcept
     -> bool
 {
