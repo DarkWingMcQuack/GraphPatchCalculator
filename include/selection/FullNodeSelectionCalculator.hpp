@@ -28,7 +28,7 @@ public:
             all_to_all_[first] = std::vector(graph.size(), true);
 
             for(auto second : utils::range(graph.size())) {
-                if(first != second or node_selector_.distanceOf(first, second) > prune_distance) {
+                if(node_selector_.distanceOf(first, second) > prune_distance) {
                     all_to_all_[first][second] = false;
                 }
             }
@@ -46,7 +46,6 @@ public:
         while(!done()) {
 
             auto [first, second] = getRandomRemainingPair();
-
 
             auto selection_opt = node_selector_.calculateFullSelection(first, second);
             if(!selection_opt) {
