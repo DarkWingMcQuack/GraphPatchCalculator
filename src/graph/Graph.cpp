@@ -45,9 +45,9 @@ auto reverseAdjList(const std::vector<std::vector<std::pair<graph::Node, graph::
 {
     std::vector<std::vector<std::pair<graph::Node, graph::Distance>>> reverse_list(adj_list.size());
 
-    for(const auto& [target, neigs] : utils::enumerate(adj_list)) {
-        for(auto [source, dist] : neigs) {
-            reverse_list[source].emplace_back(target, dist);
+    for(const auto& [source, neigs] : utils::enumerate(adj_list)) {
+        for(auto [target, dist] : neigs) {
+            reverse_list[target].emplace_back(source, dist);
         }
     }
 

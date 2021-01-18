@@ -30,8 +30,7 @@ CachingDijkstra::CachingDijkstra(const graph::Graph& graph) noexcept
 
     for(auto from : utils::range(graph_.size())) {
         for(auto to : utils::range(graph.size())) {
-            auto distance = computeDistance(from, to);
-            insertCache(from, to, distance);
+			distance_cache_[from][to] = computeDistance(from, to);
         }
         bar++;
         bar.displayIfChangedAtLeast(0.02);
