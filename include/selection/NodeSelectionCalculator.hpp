@@ -40,16 +40,11 @@ public:
         auto center = center_opt.value();
 
         auto source_to_center = cached_path_finder_.findDistance(source_start, center);
-		fmt::print("source to center : {}\n", source_to_center);
+        auto target_to_center = cached_path_finder_.findDistance(center, target_start);
 
         std::deque<graph::Node> source_candidates;
         source_candidates.emplace_back(source_start);
         source_patch_.emplace_back(source_start, source_to_center);
-
-        auto target_to_center = cached_path_finder_.findDistance(center, target_start);
-		fmt::print("center to target: {}\n", target_to_center);
-
-		fmt::print("source to target: {}\n", cached_path_finder_.findDistance(source_start, target_start));
 
         std::deque<graph::Node> target_candidates;
         target_candidates.push_back(target_start);
@@ -144,10 +139,7 @@ public:
 
                 if(center_target_dist == graph::UNREACHABLE
                    or center_dist == graph::UNREACHABLE) {
-                    if(dist != graph::UNREACHABLE) {
-                        return false;
-                    }
-					return true;
+                    return dist == graph::UNREACHABLE;
                 }
 
                 return center_dist + center_target_dist == dist;

@@ -58,12 +58,13 @@ public:
 
             auto selection = std::move(selection_opt.value());
 
-            fmt::print("before size: {}\n", selection.weight());
             optimizeSelection(selection);
-            fmt::print("size: {}\n", selection.weight());
-            fmt::print("----------------------------------------\n");
-            eraseNodeSelection(selection);
 
+            if(selection.weight() == 0) {
+                continue;
+            }
+
+            eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
 
 
