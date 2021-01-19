@@ -39,6 +39,9 @@ public:
     [[nodiscard]] auto weight() const noexcept
         -> std::size_t;
 
+    [[nodiscard]] auto averageDistance() const noexcept
+        -> graph::Distance;
+
     auto deleteFromSource(const std::vector<graph::Node>& nodes) noexcept
         -> void;
     auto deleteFromTarget(const std::vector<graph::Node>& nodes) noexcept

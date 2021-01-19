@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <numeric>
 #include <selection/NodeSelection.hpp>
 
 using selection::NodeSelection;
@@ -18,6 +19,30 @@ auto NodeSelection::weight() const noexcept
     -> std::size_t
 {
     return source_patch_.size() * target_patch_.size();
+}
+
+auto NodeSelection::averageDistance() const noexcept
+    -> graph::Distance
+{
+    auto source_center = std::transform_reduce(std::begin(source_patch_),
+                                               std::end(source_patch_),
+                                               0,
+                                               std::plus<>{},
+                                               [](auto pair) {
+                                                   return pair.second;
+                                               })
+        / source_patch_.size();
+
+    auto center_target = std::transform_reduce(std::begin(target_patch_),
+                                               std::end(target_patch_),
+                                               0,
+                                               std::plus<>{},
+                                               [](auto pair) {
+                                                   return pair.second;
+                                               })
+        / target_patch_.size();
+
+    return source_center + center_target;
 }
 
 auto NodeSelection::getSourcePatch() const noexcept
