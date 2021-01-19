@@ -62,7 +62,8 @@ public:
                 if(auto source_dist_opt = checkSourceAffiliation(current, center, target_patch_)) {
                     auto source_dist = source_dist_opt.value();
 
-                    if(!areAllSourceSettledFor(current)) {
+
+                    if(!areAllTargetSettledFor(current)) {
                         source_patch_.emplace_back(current, source_dist);
                     }
 
@@ -93,7 +94,7 @@ public:
                 if(auto target_dist_opt = checkTargetAffiliation(current, center, source_patch_)) {
                     auto target_dist = target_dist_opt.value();
 
-                    if(!areAllTargetSettledFor(current)) {
+                    if(!areAllSourceSettledFor(current)) {
                         target_patch_.emplace_back(current, target_dist);
                     }
 
