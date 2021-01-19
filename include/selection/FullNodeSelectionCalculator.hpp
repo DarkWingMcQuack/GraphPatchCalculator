@@ -22,7 +22,7 @@ public:
                                 std::size_t prune_distance)
         : graph_(graph),
           all_to_all_(graph.size()),
-          node_selector_(graph)
+          node_selector_(graph, all_to_all_)
     {
         for(auto first : utils::range(graph.size())) {
             all_to_all_[first] = std::vector(graph.size(), true);
@@ -58,7 +58,7 @@ public:
 
             auto selection = std::move(selection_opt.value());
 
-            optimizeSelection(selection);
+            // optimizeSelection(selection);
 
             if(selection.weight() == 0) {
                 continue;

@@ -14,12 +14,14 @@ template<class PathFinder,
 class NodeSelectionCalculator
 {
 public:
-    NodeSelectionCalculator(const graph::Graph& graph)
+    NodeSelectionCalculator(const graph::Graph& graph,
+                            const std::vector<std::vector<bool>>& coverage)
         : cached_path_finder_(graph),
           center_calculator_(graph),
           graph_(graph),
           source_settled_(graph_.size(), false),
-          target_settled_(graph_.size(), false) {}
+          target_settled_(graph_.size(), false),
+          coverage_(coverage) {}
 
     [[nodiscard]] auto distanceOf(graph::Node source,
                                   graph::Node target) const noexcept
@@ -59,7 +61,10 @@ public:
 
                 if(auto source_dist_opt = checkSourceAffiliation(current, center, target_patch_)) {
                     auto source_dist = source_dist_opt.value();
-                    source_patch_.emplace_back(current, source_dist);
+
+                    if(!areAllSourceSettledFor(current)) {
+                        source_patch_.emplace_back(current, source_dist);
+                    }
 
                     auto neigbours = graph_.getBackwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
@@ -88,7 +93,9 @@ public:
                 if(auto target_dist_opt = checkTargetAffiliation(current, center, source_patch_)) {
                     auto target_dist = target_dist_opt.value();
 
-                    target_patch_.emplace_back(current, target_dist);
+                    if(!areAllTargetSettledFor(current)) {
+                        target_patch_.emplace_back(current, target_dist);
+                    }
 
                     auto neigbours = graph_.getForwardNeigboursOf(current);
                     for(auto [neig, dist] : neigbours) {
@@ -234,6 +241,36 @@ private:
         return center_calculator_.calculateCenter(source, target);
     }
 
+    [[nodiscard]] auto areAllSourceSettledFor(graph::Node target) const noexcept
+        -> bool
+    {
+        return std::all_of(
+            std::begin(source_patch_),
+            std::end(source_patch_),
+            [&](auto pair) {
+                auto [source, _] = pair;
+                return coverage_[source].empty()
+                    or coverage_[source][target];
+            });
+    }
+
+    [[nodiscard]] auto areAllTargetSettledFor(graph::Node source) const noexcept
+        -> bool
+    {
+        const auto& source_vec = coverage_[source];
+        if(source_vec.empty()) {
+            return true;
+        }
+
+        return std::all_of(
+            std::begin(target_patch_),
+            std::end(target_patch_),
+            [&](auto pair) {
+                auto [target, _] = pair;
+                return source_vec[target];
+            });
+    }
+
 private:
     CachedPathFinder cached_path_finder_;
     SelectionCenterCalculator<PathFinder> center_calculator_;
@@ -246,6 +283,7 @@ private:
 
     std::vector<std::pair<graph::Node, graph::Distance>> source_patch_;
     std::vector<std::pair<graph::Node, graph::Distance>> target_patch_;
+    const std::vector<std::vector<bool>>& coverage_;
 };
 
 } // namespace selection
