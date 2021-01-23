@@ -21,7 +21,7 @@ using SelectionCalculator = FullNodeSelectionCalculator<Dijkstra, CachingDijkstr
 
 auto runSelection(const graph::Graph &graph,
                   std::string_view result_folder,
-				  std::size_t prune_distance)
+                  std::size_t prune_distance)
 {
     utils::Timer t;
     SelectionCalculator selection_calculator{graph, prune_distance};
@@ -41,6 +41,7 @@ auto runSelection(const graph::Graph &graph,
     for(std::size_t i{0}; i < selections.size(); i++) {
         const auto path = fmt::format("{}/selection-{}", selection_folder, i);
         selections[i].toFile(path);
+        selections[i].toLatLngFiles(path, graph);
     }
 
     selection::SelectionOptimizer optimizer{graph.size(),

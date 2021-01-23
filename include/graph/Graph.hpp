@@ -13,7 +13,9 @@ static constexpr inline auto NOT_REACHABLE = std::numeric_limits<Node>::max();
 class Graph
 {
 public:
-    Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list) noexcept;
+    Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list,
+          std::vector<double> lats,
+          std::vector<double> lngs) noexcept;
 
     auto getForwardNeigboursOf(Node node) const noexcept
         -> nonstd::span<const std::pair<Node, Distance>>;
@@ -30,12 +32,18 @@ public:
     auto backwardEdgeExists(Node from, Node to) const noexcept
         -> bool;
 
+    auto getLatLng(Node n) const noexcept
+        -> std::pair<double, double>;
+
 private:
     std::vector<std::pair<Node, Distance>> forward_neigbours_;
     std::vector<size_t> forward_offset_;
 
     std::vector<std::pair<Node, Distance>> backward_neigbours_;
     std::vector<size_t> backward_offset_;
+
+    std::vector<double> lats_;
+    std::vector<double> lngs_;
 };
 
 auto parseFMIFile(std::string_view path) noexcept

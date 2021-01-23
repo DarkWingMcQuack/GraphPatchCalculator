@@ -50,6 +50,9 @@ public:
     auto toFile(std::string_view path) const noexcept
         -> void;
 
+    auto toLatLngFiles(std::string_view path, const graph::Graph& graph) const noexcept
+        -> void;
+
 private:
     Patch source_patch_;
     Patch target_patch_;

@@ -56,7 +56,11 @@ auto reverseAdjList(const std::vector<std::vector<std::pair<graph::Node, graph::
 
 } // namespace
 
-Graph::Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list) noexcept
+Graph::Graph(const std::vector<std::vector<std::pair<Node, Distance>>>& adj_list,
+             std::vector<double> lats,
+             std::vector<double> lngs) noexcept
+    : lats_(std::move(lats)),
+      lngs_(std::move(lngs))
 {
     auto backward_adj_list = reverseAdjList(adj_list);
 
@@ -126,6 +130,13 @@ auto Graph::size() const noexcept
     return forward_offset_.size() - 1;
 }
 
+auto Graph::getLatLng(Node n) const noexcept
+    -> std::pair<double, double>
+{
+    return std::pair{lats_[n],
+                     lngs_[n]};
+}
+
 
 auto graph::parseFMIFile(std::string_view path) noexcept
     -> std::optional<Graph>
@@ -160,8 +171,13 @@ auto graph::parseFMIFile(std::string_view path) noexcept
     double longitude;
     int elevation;
 
+    std::vector<double> lats;
+    std::vector<double> lngs;
+
     for(size_t i{0}; i < number_of_nodes; i++) {
         in >> node >> id2 >> latitude >> longitude >> elevation;
+        lats.emplace_back(latitude);
+        lngs.emplace_back(longitude);
     }
 
     Node from;
@@ -178,5 +194,7 @@ auto graph::parseFMIFile(std::string_view path) noexcept
         edges[from].emplace_back(to, cost);
     }
 
-    return Graph{edges};
+    return Graph{edges,
+                 std::move(lats),
+                 std::move(lngs)};
 }

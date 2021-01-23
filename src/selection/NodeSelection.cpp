@@ -185,3 +185,26 @@ auto NodeSelection::toFile(std::string_view path) const noexcept
     }
     file << "center: " << center_ << "\n";
 }
+
+
+auto NodeSelection::toLatLngFiles(std::string_view path, const graph::Graph& graph) const noexcept
+    -> void
+{
+    std::string source_file = path.data();
+    source_file += "source";
+
+    std::string target_file = path.data();
+    target_file += "target";
+
+    std::ofstream src_file{source_file};
+    for(auto [node, dist] : source_patch_) {
+        auto [lat, lng] = graph.getLatLng(node);
+        src_file << lat << ", " << lng << "\n";
+    }
+
+    std::ofstream trg_file{target_file};
+    for(auto [node, dist] : target_patch_) {
+        auto [lat, lng] = graph.getLatLng(node);
+        src_file << lat << ", " << lng << "\n";
+    }
+}
