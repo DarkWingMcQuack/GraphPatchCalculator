@@ -196,17 +196,25 @@ auto NodeSelection::toLatLngFiles(std::string_view path, const graph::Graph& gra
     std::string target_file = path.data();
     target_file += "-target";
 
+    std::string center_file = path.data();
+    center_file += "-center";
+
     std::ofstream src_file{source_file};
-	src_file << "# lng,\tlat\n";
+    src_file << "# lng,\tlat\n";
     for(auto [node, dist] : source_patch_) {
         auto [lat, lng] = graph.getLatLng(node);
         src_file << lng << ",\t" << lat << "\n";
     }
 
     std::ofstream trg_file{target_file};
-	trg_file << "# lng,\tlat\n";
+    trg_file << "# lng,\tlat\n";
     for(auto [node, dist] : target_patch_) {
         auto [lat, lng] = graph.getLatLng(node);
         src_file << lng << ",\t" << lat << "\n";
     }
+
+    std::ofstream c_file{center_file};
+    c_file << "# lng,\tlat\n";
+    auto [lat, lng] = graph.getLatLng(center_);
+    c_file << lng << ",\t" << lat << "\n";
 }
