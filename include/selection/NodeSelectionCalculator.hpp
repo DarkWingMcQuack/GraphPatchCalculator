@@ -47,9 +47,6 @@ public:
         source_patch_.emplace_back(source_start, source_to_center);
         target_patch_.emplace_back(target_start, target_to_center);
 
-        settleRight(center);
-        settleLeft(center);
-
         auto last_node = graph_.size();
 
         graph::Node current_src_candidate = 0;

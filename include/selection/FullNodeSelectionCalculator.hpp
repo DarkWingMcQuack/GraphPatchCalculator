@@ -56,10 +56,8 @@ public:
 
             auto selection_opt = node_selector_.calculateFullSelection(first, second);
             if(!selection_opt) {
-
                 all_to_all_[first][second] = true;
                 ifDoneClear(first);
-
                 continue;
             }
 
