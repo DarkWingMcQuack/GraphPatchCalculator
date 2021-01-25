@@ -210,7 +210,7 @@ auto NodeSelection::toLatLngFiles(std::string_view path, const graph::Graph& gra
     trg_file << "# lng,\tlat\n";
     for(auto [node, dist] : target_patch_) {
         auto [lat, lng] = graph.getLatLng(node);
-        src_file << lng << ",\t" << lat << "\n";
+        trg_file << lng << ",\t" << lat << "\n";
     }
 
     std::ofstream c_file{center_file};
