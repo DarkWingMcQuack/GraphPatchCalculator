@@ -7,7 +7,9 @@ import argparse
 def load_data(path):
     with open(path, newline='') as f:
         reader = csv.reader(f)
-        return list(reader)
+        # skip header
+        next(reader)
+        return [[float(r[0]), float(r[1])] for r in reader if r]
 
 
 def plt_selection(sources, targets, center, outfile):
@@ -17,6 +19,8 @@ def plt_selection(sources, targets, center, outfile):
     trg_lat = [x[1] for x in targets]
     center_lng = [x[0] for x in center]
     center_lat = [x[1] for x in center]
+
+    print(src_lng)
 
     # plt.hold(True)
     plt.plot(src_lng, src_lat, 'b.')
