@@ -27,10 +27,17 @@ public:
         for(auto first : utils::range(graph.size())) {
             all_to_all_[first] = std::vector(graph.size(), true);
 
+            bool empty = true;
             for(auto second : utils::range(graph.size())) {
-                if(node_selector_.distanceOf(first, second) > prune_distance) {
+                auto distance = node_selector_.distanceOf(first, second);
+                if(distance > prune_distance and distance != graph::UNREACHABLE) {
                     all_to_all_[first][second] = false;
+                    empty = false;
                 }
+            }
+
+            if(empty) {
+                all_to_all_[first].clear();
             }
         }
     }
@@ -58,14 +65,13 @@ public:
 
             auto selection = std::move(selection_opt.value());
 
-            // optimizeSelection(selection);
-
             if(selection.weight() == 0) {
                 continue;
             }
 
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
+
 
 
             //update progress bar

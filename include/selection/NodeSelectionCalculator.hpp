@@ -44,78 +44,46 @@ public:
         auto source_to_center = cached_path_finder_.findDistance(source_start, center);
         auto target_to_center = cached_path_finder_.findDistance(center, target_start);
 
-        std::deque<graph::Node> source_candidates;
-        source_candidates.emplace_back(source_start);
         source_patch_.emplace_back(source_start, source_to_center);
-
-        std::deque<graph::Node> target_candidates;
-        target_candidates.push_back(target_start);
         target_patch_.emplace_back(target_start, target_to_center);
 
+        settleRight(center);
+        settleLeft(center);
 
-        while(!source_candidates.empty() or !target_candidates.empty()) {
+        auto last_node = graph_.size();
 
-            if(!source_candidates.empty()) {
-                auto current = source_candidates.front();
-                source_candidates.pop_front();
+        graph::Node current_src_candidate = 0;
+        graph::Node current_trg_candidate = 0;
 
-                if(auto source_dist_opt = checkSourceAffiliation(current, center, target_patch_)) {
+        while(current_src_candidate < last_node or current_trg_candidate < last_node) {
+
+            if(current_src_candidate < last_node) {
+                auto source_dist_opt = checkSourceAffiliation(current_src_candidate,
+                                                              center,
+                                                              target_patch_);
+                if(source_dist_opt) {
                     auto source_dist = source_dist_opt.value();
 
 
-                    if(!areAllTargetSettledFor(current)) {
-                        source_patch_.emplace_back(current, source_dist);
-                    }
-
-                    auto neigbours = graph_.getBackwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isLeftSettled(neig)) {
-                            settleLeft(neig);
-                            touched_.push_back(neig);
-                            source_candidates.push_back(neig);
-                        }
-                    }
-
-                    neigbours = graph_.getForwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isLeftSettled(neig)) {
-                            settleLeft(neig);
-                            touched_.push_back(neig);
-                            source_candidates.push_back(neig);
-                        }
+                    if(!areAllTargetSettledFor(current_src_candidate)) {
+                        source_patch_.emplace_back(current_src_candidate, source_dist);
                     }
                 }
+                current_src_candidate++;
             }
 
-            if(!target_candidates.empty()) {
-                auto current = target_candidates.front();
-                target_candidates.pop_front();
-
-                if(auto target_dist_opt = checkTargetAffiliation(current, center, source_patch_)) {
+            if(current_trg_candidate < last_node) {
+                auto target_dist_opt = checkTargetAffiliation(current_trg_candidate,
+                                                              center,
+                                                              source_patch_);
+                if(target_dist_opt) {
                     auto target_dist = target_dist_opt.value();
 
-                    if(!areAllSourceSettledFor(current)) {
-                        target_patch_.emplace_back(current, target_dist);
-                    }
-
-                    auto neigbours = graph_.getForwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isRightSettled(neig)) {
-                            settleRight(neig);
-                            touched_.push_back(neig);
-                            target_candidates.push_back(neig);
-                        }
-                    }
-
-                    neigbours = graph_.getBackwardNeigboursOf(current);
-                    for(auto [neig, dist] : neigbours) {
-                        if(!isRightSettled(neig)) {
-                            settleRight(neig);
-                            touched_.push_back(neig);
-                            target_candidates.push_back(neig);
-                        }
+                    if(!areAllTargetSettledFor(current_trg_candidate)) {
+                        target_patch_.emplace_back(current_trg_candidate, target_dist);
                     }
                 }
+                current_trg_candidate++;
             }
         }
 
@@ -137,18 +105,16 @@ public:
     {
         auto center_dist = cached_path_finder_.findDistance(source, center);
 
+        if(center_dist == graph::UNREACHABLE) {
+            return std::nullopt;
+        }
+
         auto valid = std::all_of(
             std::begin(targets),
             std::end(targets),
             [&](auto pair) {
                 auto [target, center_target_dist] = pair;
-
                 auto dist = cached_path_finder_.findDistance(source, target);
-
-                if(center_target_dist == graph::UNREACHABLE
-                   or center_dist == graph::UNREACHABLE) {
-                    return dist == graph::UNREACHABLE;
-                }
 
                 return center_dist + center_target_dist == dist;
             });
@@ -167,6 +133,10 @@ public:
     {
         auto center_dist = cached_path_finder_.findDistance(center, target);
 
+        if(center_dist == graph::UNREACHABLE) {
+            return std::nullopt;
+        }
+
         auto valid = std::all_of(
             std::begin(sources),
             std::end(sources),
@@ -174,14 +144,6 @@ public:
                 auto [source, center_target_dist] = pair;
 
                 auto dist = cached_path_finder_.findDistance(source, target);
-
-                if(center_target_dist == graph::UNREACHABLE
-                   or center_dist == graph::UNREACHABLE) {
-                    if(dist != graph::UNREACHABLE) {
-                        return false;
-                    }
-                }
-
                 return center_dist + center_target_dist == dist;
             });
 
