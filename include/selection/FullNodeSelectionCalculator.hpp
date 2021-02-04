@@ -13,23 +13,28 @@
 
 namespace selection {
 
-template<class PathFinder,
+template<class CenterCalculator,
          class CachedPathFinder>
 class FullNodeSelectionCalculator
 {
 public:
     FullNodeSelectionCalculator(const graph::Graph& graph,
+                                CenterCalculator center_calculator,
                                 std::size_t prune_distance)
         : graph_(graph),
           all_to_all_(graph.size()),
-          node_selector_(graph, all_to_all_)
+          cached_path_finder_(graph_),
+          node_selector_(cached_path_finder_,
+                         std::move(center_calculator),
+                         graph,
+                         all_to_all_)
     {
         for(auto first : utils::range(graph.size())) {
             all_to_all_[first] = std::vector(graph.size(), true);
 
             bool empty = true;
             for(auto second : utils::range(graph.size())) {
-                auto distance = node_selector_.distanceOf(first, second);
+                auto distance = cached_path_finder_.findDistance(first, second);
                 if(distance > prune_distance and distance != graph::UNREACHABLE) {
                     all_to_all_[first][second] = false;
                     empty = false;
@@ -50,7 +55,6 @@ public:
         progresscpp::ProgressBar bar{graph_.size(), 80ul};
         auto done_counter = countDoneNodes();
 
-        auto counter = 0;
         while(!done()) {
 
             auto [first, second] = getRandomRemainingPair();
@@ -68,12 +72,7 @@ public:
                 continue;
             }
 
-            if(selection.weight() == 1) {
-                fmt::print("aaaaaa: {}\n", counter++);
-            }
-
-            optimizeSelection(selection);
-			fmt::print("size: {}\n", selection.weight());
+            fmt::print("size: {}\n", selection.weight());
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
 
@@ -161,41 +160,6 @@ private:
         }
     }
 
-    auto optimizeSelection(NodeSelection& selection) noexcept
-        -> void
-    {
-        auto changed = true;
-        auto& sources = selection.getSourcePatch();
-        auto& targets = selection.getTargetPatch();
-
-        while(changed) {
-            auto weight_before = selection.weight();
-
-            sources.erase(
-                std::remove_if(std::begin(sources),
-                               std::end(sources),
-                               [&](auto pair) {
-                                   auto [source, _] = pair;
-                                   return areAllTargetSettledFor(source, targets);
-                               }),
-                std::end(sources));
-
-            targets.erase(
-                std::remove_if(std::begin(targets),
-                               std::end(targets),
-                               [&](auto pair) {
-                                   auto [target, _] = pair;
-                                   return areAllSourceSettledFor(sources, target);
-                               }),
-                std::end(targets));
-
-            auto weight_after = selection.weight();
-
-            changed = weight_before != weight_after;
-        }
-    }
-
-
     [[nodiscard]] auto countDoneNodes() const noexcept
         -> std::size_t
     {
@@ -204,36 +168,6 @@ private:
                              [](const auto& b) {
                                  return b.empty();
                              });
-    }
-
-    [[nodiscard]] auto areAllSourceSettledFor(const Patch& sources, graph::Node target) const noexcept
-        -> bool
-    {
-        return std::all_of(
-            std::begin(sources),
-            std::end(sources),
-            [&](auto pair) {
-                auto [source, _] = pair;
-                return all_to_all_[source].empty()
-                    or all_to_all_[source][target];
-            });
-    }
-
-    [[nodiscard]] auto areAllTargetSettledFor(graph::Node source, const Patch& targets) const noexcept
-        -> bool
-    {
-        const auto& source_vec = all_to_all_[source];
-        if(source_vec.empty()) {
-            return true;
-        }
-
-        return std::all_of(
-            std::begin(targets),
-            std::end(targets),
-            [&](auto pair) {
-                auto [target, _] = pair;
-                return source_vec[target];
-            });
     }
 
     auto ifDoneClear(graph::Node n) noexcept
@@ -259,7 +193,8 @@ private:
 private:
     const graph::Graph& graph_;
     std::vector<std::vector<bool>> all_to_all_;
-    NodeSelectionCalculator<PathFinder, CachedPathFinder> node_selector_;
+    CachedPathFinder cached_path_finder_;
+    NodeSelectionCalculator<CenterCalculator, CachedPathFinder> node_selector_;
 };
 
 } // namespace selection

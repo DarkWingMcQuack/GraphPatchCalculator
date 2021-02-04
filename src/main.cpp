@@ -17,14 +17,19 @@ using pathfinding::Dijkstra;
 using selection::FullNodeSelectionCalculator;
 namespace fs = std::filesystem;
 
-using SelectionCalculator = FullNodeSelectionCalculator<Dijkstra, CachingDijkstra>;
+using CenterCalculator = selection::SelectionCenterCalculator<Dijkstra>;
+using SelectionCalculator = FullNodeSelectionCalculator<CenterCalculator, CachingDijkstra>;
 
 auto runSelection(const graph::Graph &graph,
                   std::string_view result_folder,
                   std::size_t prune_distance)
 {
     utils::Timer t;
-    SelectionCalculator selection_calculator{graph, prune_distance};
+    CenterCalculator center_calculator{graph};
+    SelectionCalculator selection_calculator{graph,
+                                             std::move(center_calculator),
+                                             prune_distance};
+
     auto selections = selection_calculator.calculateFullNodeSelection();
 
     fmt::print("runtime: {}\n", t.elapsed());

@@ -9,27 +9,19 @@
 
 namespace selection {
 
-template<class PathFinder,
+template<class CenterCalculator,
          class CachedPathFinder>
 class NodeSelectionCalculator
 {
 public:
-    NodeSelectionCalculator(const graph::Graph& graph,
+    NodeSelectionCalculator(const CachedPathFinder& cached_path_finder,
+                            CenterCalculator center_calculator,
+                            const graph::Graph& graph,
                             const std::vector<std::vector<bool>>& coverage)
-        : cached_path_finder_(graph),
-          center_calculator_(graph),
+        : cached_path_finder_(cached_path_finder),
+          center_calculator_(center_calculator),
           graph_(graph),
-          source_settled_(graph_.size(), false),
-          target_settled_(graph_.size(), false),
           coverage_(coverage) {}
-
-    [[nodiscard]] auto distanceOf(graph::Node source,
-                                  graph::Node target) const noexcept
-        -> graph::Distance
-    {
-        return cached_path_finder_.findDistance(source, target);
-    }
-
 
     [[nodiscard]] auto calculateFullSelection(graph::Node source_start,
                                               graph::Node target_start) noexcept
@@ -83,26 +75,17 @@ public:
         return selection;
     }
 
-    auto processSourceCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+private:
+    [[nodiscard]] auto processSourceCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
         -> bool
     {
         if(node == center or node == start) {
             return false;
         }
 
-        auto new_paths = countNewPathsForSource(node);
-
-        // if(new_paths <= 1 and !target_patch_.empty()) {
-        //     return false;
-        // }
-
-        if(new_paths <= 1 and target_patch_.size() >= 2) {
+        if(countNewPathsForSource(node) == 0) {
             return false;
         }
-
-        // if(new_paths < target_patch_.size() / 2) {
-        //     return false;
-        // }
 
         auto source_dist_opt = checkSourceAffiliation(node,
                                                       center,
@@ -117,20 +100,14 @@ public:
         return false;
     }
 
-    auto processTargetCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+    [[nodiscard]] auto processTargetCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
         -> bool
     {
         if(node == center or node == start) {
             return false;
         }
 
-        auto new_paths = countNewPathsForTarget(node);
-
-        // if(new_paths < source_patch_.size() / 2) {
-        //     return false;
-        // }
-
-        if(new_paths <= 1 and source_patch_.size() >= 2) {
+        if(countNewPathsForTarget(node) == 0) {
             return false;
         }
 
@@ -208,44 +185,8 @@ private:
     auto cleanup() noexcept
         -> void
     {
-        for(auto n : touched_) {
-            unsettle(n);
-        }
-        touched_.clear();
         source_patch_.clear();
         target_patch_.clear();
-    }
-
-
-    auto unsettle(graph::Node node) noexcept
-        -> void
-    {
-        source_settled_[node] = false;
-        target_settled_[node] = false;
-    }
-
-    auto settleLeft(graph::Node node) noexcept
-        -> void
-    {
-        source_settled_[node] = true;
-    }
-
-    auto settleRight(graph::Node node) noexcept
-        -> void
-    {
-        target_settled_[node] = true;
-    }
-
-    [[nodiscard]] auto isLeftSettled(graph::Node node) const noexcept
-        -> bool
-    {
-        return source_settled_[node];
-    }
-
-    [[nodiscard]] auto isRightSettled(graph::Node node) const noexcept
-        -> bool
-    {
-        return target_settled_[node];
     }
 
     [[nodiscard]] auto calculateCenter(graph::Node source,
@@ -286,14 +227,10 @@ private:
     }
 
 private:
-    CachedPathFinder cached_path_finder_;
-    SelectionCenterCalculator<PathFinder> center_calculator_;
+    const CachedPathFinder& cached_path_finder_;
+    CenterCalculator center_calculator_;
+
     const graph::Graph& graph_;
-
-    std::vector<graph::Node> touched_;
-
-    std::vector<bool> source_settled_;
-    std::vector<bool> target_settled_;
 
     std::vector<std::pair<graph::Node, graph::Distance>> source_patch_;
     std::vector<std::pair<graph::Node, graph::Distance>> target_patch_;
