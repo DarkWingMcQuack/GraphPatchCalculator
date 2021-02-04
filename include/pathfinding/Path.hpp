@@ -21,7 +21,9 @@ public:
     auto pushBack(graph::Node node) noexcept -> void;
     auto pushFront(graph::Node node) noexcept -> void;
 
+    auto size() const noexcept -> std::size_t;
     auto getLength() const noexcept -> std::size_t;
+    auto empty() const noexcept -> bool;
 
     auto getSource() const noexcept -> const graph::Node&;
     auto getSource() noexcept -> graph::Node&;

@@ -36,6 +36,16 @@ auto Path::getLength() const noexcept -> std::size_t
     return path_.size() - 1;
 }
 
+auto Path::size() const noexcept -> std::size_t
+{
+    return path_.size();
+}
+
+auto Path::empty() const noexcept -> bool
+{
+    return path_.empty();
+}
+
 auto Path::getSource() const noexcept -> const graph::Node&
 {
     return path_.front();
