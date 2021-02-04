@@ -14,17 +14,18 @@
 namespace selection {
 
 template<class CenterCalculator,
-         class CachedPathFinder>
+         class DistanceOracle>
 class FullNodeSelectionCalculator
 {
 public:
     FullNodeSelectionCalculator(const graph::Graph& graph,
+                                const DistanceOracle& distance_oracle,
                                 CenterCalculator center_calculator,
                                 std::size_t prune_distance)
         : graph_(graph),
+          distance_oracle_(distance_oracle),
           all_to_all_(graph.size()),
-          cached_path_finder_(graph_),
-          node_selector_(cached_path_finder_,
+          node_selector_(distance_oracle,
                          std::move(center_calculator),
                          graph,
                          all_to_all_)
@@ -34,7 +35,7 @@ public:
 
             bool empty = true;
             for(auto second : utils::range(graph.size())) {
-                auto distance = cached_path_finder_.findDistance(first, second);
+                auto distance = distance_oracle_.findDistance(first, second);
                 if(distance > prune_distance and distance != graph::UNREACHABLE) {
                     all_to_all_[first][second] = false;
                     empty = false;
@@ -192,9 +193,9 @@ private:
 
 private:
     const graph::Graph& graph_;
+    const DistanceOracle& distance_oracle_;
     std::vector<std::vector<bool>> all_to_all_;
-    CachedPathFinder cached_path_finder_;
-    NodeSelectionCalculator<CenterCalculator, CachedPathFinder> node_selector_;
+    NodeSelectionCalculator<CenterCalculator, DistanceOracle> node_selector_;
 };
 
 } // namespace selection

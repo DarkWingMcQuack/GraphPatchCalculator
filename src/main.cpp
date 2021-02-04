@@ -26,8 +26,10 @@ auto runSelection(const graph::Graph &graph,
                   std::size_t prune_distance)
 {
     utils::Timer t;
+    CachingDijkstra distance_oracle{graph};
     CenterCalculator center_calculator{graph};
     SelectionCalculator selection_calculator{graph,
+                                             distance_oracle,
                                              std::move(center_calculator),
                                              prune_distance};
 
