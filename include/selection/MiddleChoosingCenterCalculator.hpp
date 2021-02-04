@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pathfinding/Path.hpp"
+#include <pathfinding/Path.hpp>
 #include <cmath>
 #include <fmt/core.h>
 #include <graph/Graph.hpp>

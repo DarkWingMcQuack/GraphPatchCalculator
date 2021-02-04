@@ -6,6 +6,7 @@
 #include <pathfinding/CachingDijkstra.hpp>
 #include <pathfinding/Dijkstra.hpp>
 #include <selection/FullNodeSelectionCalculator.hpp>
+#include <selection/MiddleChoosingCenterCalculator.hpp>
 #include <selection/SelectionLookup.hpp>
 #include <selection/SelectionOptimizer.hpp>
 #include <utils/ProgramOptions.hpp>

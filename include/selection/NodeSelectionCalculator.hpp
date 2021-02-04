@@ -4,7 +4,6 @@
 #include <pathfinding/Distance.hpp>
 #include <queue>
 #include <selection/NodeSelection.hpp>
-#include <selection/SelectionCenterCalculator.hpp>
 #include <vector>
 
 namespace selection {
