@@ -218,3 +218,46 @@ auto NodeSelection::toLatLngFiles(std::string_view path, const graph::Graph& gra
     auto [lat, lng] = graph.getLatLng(center_);
     c_file << lng << ",\t" << lat << "\n";
 }
+
+
+auto NodeSelection::toJson(const graph::Graph& graph) const noexcept
+    -> nlohmann::json
+{
+    nlohmann::json j;
+
+    j["sources"] = source_patch_;
+    j["targets"] = target_patch_;
+
+    std::vector<std::pair<double, double>> source_coords;
+    std::transform(std::begin(source_patch_),
+                   std::end(source_patch_),
+                   std::back_inserter(source_coords),
+                   [&](auto pair) {
+                       auto [node, _] = pair;
+                       return graph.getLatLng(node);
+                   });
+    j["source_coords"] = std::move(source_coords);
+
+    std::vector<std::pair<double, double>> target_coords;
+    std::transform(std::begin(target_patch_),
+                   std::end(target_patch_),
+                   std::back_inserter(target_coords),
+                   [&](auto pair) {
+                       auto [node, _] = pair;
+                       return graph.getLatLng(node);
+                   });
+    j["target_coords"] = std::move(target_coords);
+
+    j["center"] = center_;
+    j["center_coords"] = graph.getLatLng(center_);
+
+    return j;
+}
+
+auto NodeSelection::toFileAsJson(std::string_view path, const graph::Graph& graph) const noexcept
+    -> void
+{
+    std::ofstream file{path.data()};
+    auto json = toJson(graph);
+    file << json;
+}

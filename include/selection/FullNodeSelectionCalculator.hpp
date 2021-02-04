@@ -50,6 +50,7 @@ public:
         progresscpp::ProgressBar bar{graph_.size(), 80ul};
         auto done_counter = countDoneNodes();
 
+        auto counter = 0;
         while(!done()) {
 
             auto [first, second] = getRandomRemainingPair();
@@ -67,10 +68,14 @@ public:
                 continue;
             }
 
+            if(selection.weight() == 1) {
+                fmt::print("aaaaaa: {}\n", counter++);
+            }
+
+            optimizeSelection(selection);
+			fmt::print("size: {}\n", selection.weight());
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
-
-
 
             //update progress bar
             auto new_done = countDoneNodes();
@@ -86,7 +91,7 @@ public:
         return calculated_selections;
     }
 
-
+private:
     [[nodiscard]] auto getRandomRemainingPair() const noexcept
         -> std::pair<graph::Node, graph::Node>
     {
@@ -190,6 +195,17 @@ public:
         }
     }
 
+
+    [[nodiscard]] auto countDoneNodes() const noexcept
+        -> std::size_t
+    {
+        return std::count_if(std::begin(all_to_all_),
+                             std::end(all_to_all_),
+                             [](const auto& b) {
+                                 return b.empty();
+                             });
+    }
+
     [[nodiscard]] auto areAllSourceSettledFor(const Patch& sources, graph::Node target) const noexcept
         -> bool
     {
@@ -218,16 +234,6 @@ public:
                 auto [target, _] = pair;
                 return source_vec[target];
             });
-    }
-
-    [[nodiscard]] auto countDoneNodes() const noexcept
-        -> std::size_t
-    {
-        return std::count_if(std::begin(all_to_all_),
-                             std::end(all_to_all_),
-                             [](const auto& b) {
-                                 return b.empty();
-                             });
     }
 
     auto ifDoneClear(graph::Node n) noexcept

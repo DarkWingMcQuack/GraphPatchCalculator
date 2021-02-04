@@ -17,7 +17,7 @@ auto adjListToOffsetArray(std::vector<std::vector<std::pair<graph::Node, graph::
     std::vector<std::pair<graph::Node, graph::Distance>> neigbours;
     std::vector<std::size_t> offset(adj_list.size() + 1);
 
-    for(auto i = 0; i < adj_list.size(); i++) {
+    for(auto i = 0ul; i < adj_list.size(); i++) {
         auto neigs = std::move(adj_list[i]);
 
         std::sort(std::begin(neigs),

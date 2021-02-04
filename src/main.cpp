@@ -30,7 +30,8 @@ auto runSelection(const graph::Graph &graph,
     fmt::print("runtime: {}\n", t.elapsed());
     fmt::print("selections calculated: {}\n", selections.size());
 
-    std::sort(std::rbegin(selections), std::rend(selections),
+    std::sort(std::rbegin(selections),
+              std::rend(selections),
               [](const auto &lhs, const auto &rhs) {
                   return lhs.weight() < rhs.weight();
               });
@@ -39,9 +40,8 @@ auto runSelection(const graph::Graph &graph,
     fs::create_directories(selection_folder);
 
     for(std::size_t i{0}; i < selections.size(); i++) {
-        const auto path = fmt::format("{}/selection-{}", selection_folder, i);
-        selections[i].toFile(path);
-        selections[i].toLatLngFiles(path, graph);
+        const auto path = fmt::format("{}/selection-{}.json", selection_folder, i);
+        selections[i].toFileAsJson(path, graph);
     }
 
     selection::SelectionOptimizer optimizer{graph.size(),

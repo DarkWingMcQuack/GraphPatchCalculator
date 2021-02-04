@@ -1,6 +1,7 @@
 #pragma once
 
 #include <graph/Graph.hpp>
+#include <nlohmann/json.hpp>
 #include <string_view>
 #include <vector>
 
@@ -51,6 +52,12 @@ public:
         -> void;
 
     auto toLatLngFiles(std::string_view path, const graph::Graph& graph) const noexcept
+        -> void;
+
+    auto toJson(const graph::Graph& graph) const noexcept
+        -> nlohmann::json;
+
+    auto toFileAsJson(std::string_view path, const graph::Graph& graph) const noexcept
         -> void;
 
 private:

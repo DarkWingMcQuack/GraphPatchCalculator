@@ -1,26 +1,39 @@
 import matplotlib.pyplot as plt
-import csv
+import json
 import mplleaflet
 import argparse
 
 
-def load_data(path):
+def load_sources_data(path):
     with open(path, newline='') as f:
-        reader = csv.reader(f)
-        # skip header
-        next(reader)
-        return [[float(r[0]), float(r[1])] for r in reader if r]
+        data = json.load(f)
+        print(data)
+        sources = data["source_coords"]
+        source_lngs = [x[1] for x in sources]
+        source_lats = [x[0] for x in sources]
+        return source_lngs, source_lats
 
 
-def plt_selection(sources, targets, center, outfile):
-    src_lng = [x[0] for x in sources]
-    src_lat = [x[1] for x in sources]
-    trg_lng = [x[0] for x in targets]
-    trg_lat = [x[1] for x in targets]
-    center_lng = [x[0] for x in center]
-    center_lat = [x[1] for x in center]
+def load_targets_data(path):
+    with open(path, newline='') as f:
+        data = json.load(f)
+        targets = data["target_coords"]
+        target_lngs = [x[1] for x in targets]
+        target_lats = [x[0] for x in targets]
+        return target_lngs, target_lats
 
-    print(src_lng)
+
+def load_center_data(path):
+    with open(path, newline='') as f:
+        data = json.load(f)
+        center = data["center_coords"]
+        return [center[1]], [center[0]]
+
+
+def plt_selection(infile, outfile):
+    src_lng, src_lat = load_sources_data(infile)
+    trg_lng, trg_lat = load_targets_data(infile)
+    center_lng, center_lat = load_center_data(infile)
 
     # plt.hold(True)
     plt.plot(src_lng, src_lat, 'b.')
@@ -31,18 +44,11 @@ def plt_selection(sources, targets, center, outfile):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='selection plotter')
-    parser.add_argument('--sources', '-s', required=True, type=str)
-    parser.add_argument('--targets', '-t', required=True, type=str)
-    parser.add_argument('--center', '-c', required=True, type=str)
+    parser.add_argument('--file', '-f', required=True, type=str)
     parser.add_argument('--output', '-o', required=True, type=str)
     args = parser.parse_args()
 
-    src_file = args.sources
-    trg_file = args.targets
-    center_file = args.center
-    output_file = args.output
+    infile = args.file
+    outfile = args.output
 
-    sources = load_data(src_file)
-    targets = load_data(trg_file)
-    center = load_data(center_file)
-    plt_selection(sources, targets, center, output_file)
+    plt_selection(infile, outfile)

@@ -42,10 +42,10 @@ public:
         auto center = center_opt.value();
 
         auto source_to_center = cached_path_finder_.findDistance(source_start, center);
-        auto target_to_center = cached_path_finder_.findDistance(center, target_start);
+        auto center_to_target = cached_path_finder_.findDistance(center, target_start);
 
         source_patch_.emplace_back(source_start, source_to_center);
-        target_patch_.emplace_back(target_start, target_to_center);
+        target_patch_.emplace_back(target_start, center_to_target);
 
         auto last_node = graph_.size();
 
@@ -54,34 +54,22 @@ public:
 
         while(current_src_candidate < last_node or current_trg_candidate < last_node) {
 
-            if(current_src_candidate < last_node) {
-                auto source_dist_opt = checkSourceAffiliation(current_src_candidate,
-                                                              center,
-                                                              target_patch_);
-                if(source_dist_opt) {
-                    auto source_dist = source_dist_opt.value();
-
-
-                    if(!areAllTargetSettledFor(current_src_candidate)) {
-                        source_patch_.emplace_back(current_src_candidate, source_dist);
-                    }
-                }
+            while(current_src_candidate < last_node
+                  and !processSourceCandidate(current_src_candidate,
+                                              center,
+                                              source_start)) {
                 current_src_candidate++;
             }
 
-            if(current_trg_candidate < last_node) {
-                auto target_dist_opt = checkTargetAffiliation(current_trg_candidate,
-                                                              center,
-                                                              source_patch_);
-                if(target_dist_opt) {
-                    auto target_dist = target_dist_opt.value();
-
-                    if(!areAllTargetSettledFor(current_trg_candidate)) {
-                        target_patch_.emplace_back(current_trg_candidate, target_dist);
-                    }
-                }
+            while(current_trg_candidate < last_node
+                  and !processTargetCandidate(current_trg_candidate,
+                                              center,
+                                              target_start)) {
                 current_trg_candidate++;
             }
+
+            current_trg_candidate++;
+            current_src_candidate++;
         }
 
         //create the selection which was found
@@ -93,6 +81,71 @@ public:
         cleanup();
 
         return selection;
+    }
+
+    auto processSourceCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+        -> bool
+    {
+        if(node == center or node == start) {
+            return false;
+        }
+
+        auto new_paths = countNewPathsForSource(node);
+
+        // if(new_paths <= 1 and !target_patch_.empty()) {
+        //     return false;
+        // }
+
+        if(new_paths <= 1 and target_patch_.size() >= 2) {
+            return false;
+        }
+
+        // if(new_paths < target_patch_.size() / 2) {
+        //     return false;
+        // }
+
+        auto source_dist_opt = checkSourceAffiliation(node,
+                                                      center,
+                                                      target_patch_);
+        if(source_dist_opt) {
+            auto source_dist = source_dist_opt.value();
+            source_patch_.emplace_back(node, source_dist);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    auto processTargetCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+        -> bool
+    {
+        if(node == center or node == start) {
+            return false;
+        }
+
+        auto new_paths = countNewPathsForTarget(node);
+
+        // if(new_paths < source_patch_.size() / 2) {
+        //     return false;
+        // }
+
+        if(new_paths <= 1 and source_patch_.size() >= 2) {
+            return false;
+        }
+
+
+        auto target_dist_opt = checkTargetAffiliation(node,
+                                                      center,
+                                                      source_patch_);
+        if(target_dist_opt) {
+            auto target_dist = target_dist_opt.value();
+            target_patch_.emplace_back(node, target_dist);
+
+            return true;
+        }
+
+        return false;
     }
 
     [[nodiscard]] auto checkSourceAffiliation(graph::Node source,
@@ -163,6 +216,7 @@ private:
         target_patch_.clear();
     }
 
+
     auto unsettle(graph::Node node) noexcept
         -> void
     {
@@ -201,33 +255,33 @@ private:
         return center_calculator_.calculateCenter(source, target);
     }
 
-    [[nodiscard]] auto areAllSourceSettledFor(graph::Node target) const noexcept
-        -> bool
+    [[nodiscard]] auto countNewPathsForTarget(graph::Node target) const noexcept
+        -> std::size_t
     {
-        return std::all_of(
+        return std::count_if(
             std::begin(source_patch_),
             std::end(source_patch_),
             [&](auto pair) {
                 auto [source, _] = pair;
-                return coverage_[source].empty()
-                    or coverage_[source][target];
+                return !coverage_[source].empty()
+                    and !coverage_[source][target];
             });
     }
 
-    [[nodiscard]] auto areAllTargetSettledFor(graph::Node source) const noexcept
-        -> bool
+    [[nodiscard]] auto countNewPathsForSource(graph::Node source) const noexcept
+        -> std::size_t
     {
         const auto& source_vec = coverage_[source];
         if(source_vec.empty()) {
-            return true;
+            return 0;
         }
 
-        return std::all_of(
+        return std::count_if(
             std::begin(target_patch_),
             std::end(target_patch_),
             [&](auto pair) {
                 auto [target, _] = pair;
-                return source_vec[target];
+                return !source_vec[target];
             });
     }
 

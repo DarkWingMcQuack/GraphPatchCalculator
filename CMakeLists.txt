@@ -21,6 +21,7 @@ include(cmake/tbb.cmake)
 include(cmake/span.cmake)
 include(cmake/CLI11.cmake)
 include(cmake/progress.cmake)
+include(cmake/nlohmann.cmake)
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
@@ -77,6 +78,7 @@ target_sources(GraphPatchCalculatorSrc
 # add the dependencies of the target to enforce
 # the right order of compiling
 add_dependencies(GraphPatchCalculatorSrc fmt-project)
+add_dependencies(GraphPatchCalculatorSrc nlohmann-project)
 add_dependencies(GraphPatchCalculatorSrc tbb-project)
 add_dependencies(GraphPatchCalculatorSrc span-lite-project)
 add_dependencies(GraphPatchCalculatorSrc CLI11-project)
@@ -90,6 +92,7 @@ target_include_directories(GraphPatchCalculatorSrc PUBLIC
   ${CLI11_INCLUDE_DIR}
   ${PROGRESS_CPP_INCLUDE_DIR}
   ${SPAN_LITE_INCLUDE_DIR}
+  ${NLOHMANN_INCLUDE_DIR}
   )
 
 #link against libarys
@@ -114,6 +117,7 @@ target_include_directories(GraphPatchCalculator PUBLIC
   ${CLI11_INCLUDE_DIR}
   ${PROGRESS_CPP_INCLUDE_DIR}
   ${SPAN_LITE_INCLUDE_DIR}
+  ${NLOHMANN_INCLUDE_DIR}
   )
 
 #link against libarys
