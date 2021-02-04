@@ -17,7 +17,7 @@ using pathfinding::Dijkstra;
 using selection::FullNodeSelectionCalculator;
 namespace fs = std::filesystem;
 
-using CenterCalculator = selection::SelectionCenterCalculator<Dijkstra>;
+using CenterCalculator = selection::MiddleChoosingCenterCalculator<Dijkstra>;
 using SelectionCalculator = FullNodeSelectionCalculator<CenterCalculator, CachingDijkstra>;
 
 auto runSelection(const graph::Graph &graph,

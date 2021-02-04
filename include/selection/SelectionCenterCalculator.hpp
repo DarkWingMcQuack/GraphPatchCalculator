@@ -14,10 +14,10 @@
 namespace selection {
 
 template<class PathFinder>
-class SelectionCenterCalculator
+class MiddleChoosingCenterCalculator
 {
 public:
-    SelectionCenterCalculator(const graph::Graph& graph)
+    MiddleChoosingCenterCalculator(const graph::Graph& graph)
         : graph_(graph),
           path_finder_(graph_),
           settled_(graph_.size(), false) {}
