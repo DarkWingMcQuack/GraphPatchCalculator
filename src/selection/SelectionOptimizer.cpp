@@ -13,11 +13,13 @@ using selection::SelectionLookup;
 using selection::SelectionOptimizer;
 
 SelectionOptimizer::SelectionOptimizer(std::size_t number_of_nodes,
-                                       std::vector<NodeSelection> selections)
+                                       std::vector<NodeSelection> selections,
+                                       std::size_t max_number_of_selections)
     : number_of_nodes_(number_of_nodes),
       selections_(std::move(selections)),
       source_selections_(number_of_nodes_),
-      target_selections_(number_of_nodes_)
+      target_selections_(number_of_nodes_),
+	  max_number_of_selections_(max_number_of_selections)
 {
     for(const auto& [i, selection] : utils::enumerate(selections_)) {
         for(auto [node, dist] : selection.getSourcePatch()) {
@@ -161,8 +163,10 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
 
     std::unordered_set<std::size_t> new_selection_set;
     std::unordered_set<graph::Node> covered_nodes;
+
+    auto counter = 0;
     for(auto [idx, _] : left_secs) {
-        if(keep_list_left_.count(idx) == 0) {
+        if(keep_list_left_.count(idx) == 0 or counter > max_number_of_selections_) {
             continue;
         }
 
@@ -173,9 +177,10 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
         }
 
         new_selection_set.emplace(idx);
+        counter++;
     }
 
-    while(covered_nodes.size() < all_nodes.size()) {
+    while(covered_nodes.size() < all_nodes.size() and counter <= max_number_of_selections_) {
         auto next_selection_idx = getLeftOptimalGreedySelection(node, covered_nodes);
         const auto& target_nodes = selections_[next_selection_idx].getTargetPatch();
 
@@ -187,6 +192,7 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
 
         new_selection_set.emplace(next_selection_idx);
         keep_list_left_.emplace(next_selection_idx);
+        counter++;
     }
 
     source_selections_[node].erase(
@@ -215,8 +221,9 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
 
     std::unordered_set<graph::Node> covered_nodes;
     std::unordered_set<std::size_t> new_selection_set;
+    auto counter = 0;
     for(auto [idx, _] : right_secs) {
-        if(keep_list_right_.count(idx) == 0) {
+        if(keep_list_right_.count(idx) == 0 or counter > max_number_of_selections_) {
             continue;
         }
 
@@ -226,9 +233,10 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
             covered_nodes.insert(source);
         }
         new_selection_set.emplace(idx);
+        counter++;
     }
 
-    while(covered_nodes.size() < all_nodes.size()) {
+    while(covered_nodes.size() < all_nodes.size() and counter <= max_number_of_selections_) {
         auto next_selection_idx = getRightOptimalGreedySelection(node, covered_nodes);
         const auto& source_nodes = selections_[next_selection_idx].getSourcePatch();
 
@@ -240,6 +248,8 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
 
         new_selection_set.emplace(next_selection_idx);
         keep_list_right_.emplace(next_selection_idx);
+
+        counter++;
     }
 
 

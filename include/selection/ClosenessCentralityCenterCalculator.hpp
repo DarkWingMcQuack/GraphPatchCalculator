@@ -31,7 +31,7 @@ public:
             auto farness = std::transform_reduce(
                 std::begin(node_range),
                 std::end(node_range),
-                0.0,
+                0l,
                 [](auto current, auto next) {
                     if(next == graph::UNREACHABLE) {
                         return current;
@@ -46,6 +46,7 @@ public:
                 / static_cast<double>(farness);
 
             closeness_centrality_[n] = closeness;
+            fmt::print("closeness: {}\n", closeness);
         }
     }
 
@@ -78,7 +79,7 @@ private:
 
         const auto& nodes = path.getNodes();
 
-        return std::max_element(
+        return *std::max_element(
             std::begin(nodes),
             std::end(nodes),
             [&](auto lhs, auto rhs) {

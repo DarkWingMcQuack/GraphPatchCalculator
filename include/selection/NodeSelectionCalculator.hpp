@@ -9,15 +9,15 @@
 namespace selection {
 
 template<class CenterCalculator,
-         class CachedPathFinder>
+         class DistanceOracle>
 class NodeSelectionCalculator
 {
 public:
-    NodeSelectionCalculator(const CachedPathFinder& cached_path_finder,
+    NodeSelectionCalculator(const DistanceOracle& cached_path_finder,
                             CenterCalculator center_calculator,
                             const graph::Graph& graph,
                             const std::vector<std::vector<bool>>& coverage)
-        : cached_path_finder_(cached_path_finder),
+        : distance_oracle_(cached_path_finder),
           center_calculator_(center_calculator),
           graph_(graph),
           coverage_(coverage) {}
@@ -32,11 +32,15 @@ public:
         }
         auto center = center_opt.value();
 
-        auto source_to_center = cached_path_finder_.findDistance(source_start, center);
-        auto center_to_target = cached_path_finder_.findDistance(center, target_start);
+        auto source_to_center = distance_oracle_.findDistance(source_start, center);
+        auto center_to_target = distance_oracle_.findDistance(center, target_start);
 
         source_patch_.emplace_back(source_start, source_to_center);
         target_patch_.emplace_back(target_start, center_to_target);
+
+        //source and target can hold the center
+        source_patch_.emplace_back(center, 0);
+        target_patch_.emplace_back(center, 0);
 
         auto last_node = graph_.size();
 
@@ -66,7 +70,8 @@ public:
         //create the selection which was found
         NodeSelection selection{std::move(source_patch_),
                                 std::move(target_patch_),
-                                center};
+                                center,
+                                false};
 
         //cleanup and reset the state of the calculator
         cleanup();
@@ -129,7 +134,7 @@ private:
                                               const Patch& targets) noexcept
         -> std::optional<graph::Distance>
     {
-        auto center_dist = cached_path_finder_.findDistance(source, center);
+        auto center_dist = distance_oracle_.findDistance(source, center);
 
         if(center_dist == graph::UNREACHABLE) {
             return std::nullopt;
@@ -140,7 +145,7 @@ private:
             std::end(targets),
             [&](auto pair) {
                 auto [target, center_target_dist] = pair;
-                auto dist = cached_path_finder_.findDistance(source, target);
+                auto dist = distance_oracle_.findDistance(source, target);
 
                 return center_dist + center_target_dist == dist;
             });
@@ -157,7 +162,7 @@ private:
                                               const Patch& sources) noexcept
         -> std::optional<graph::Distance>
     {
-        auto center_dist = cached_path_finder_.findDistance(center, target);
+        auto center_dist = distance_oracle_.findDistance(center, target);
 
         if(center_dist == graph::UNREACHABLE) {
             return std::nullopt;
@@ -169,7 +174,7 @@ private:
             [&](auto pair) {
                 auto [source, center_target_dist] = pair;
 
-                auto dist = cached_path_finder_.findDistance(source, target);
+                auto dist = distance_oracle_.findDistance(source, target);
                 return center_dist + center_target_dist == dist;
             });
 
@@ -226,7 +231,7 @@ private:
     }
 
 private:
-    const CachedPathFinder& cached_path_finder_;
+    const DistanceOracle& distance_oracle_;
     CenterCalculator center_calculator_;
 
     const graph::Graph& graph_;

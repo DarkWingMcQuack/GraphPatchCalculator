@@ -1,6 +1,7 @@
 #pragma once
 
 #include <execution>
+#include <fmt/core.h>
 #include <graph/Graph.hpp>
 #include <pathfinding/Distance.hpp>
 #include <progresscpp/ProgressBar.hpp>
@@ -73,7 +74,6 @@ public:
                 continue;
             }
 
-            fmt::print("size: {}\n", selection.weight());
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
 
@@ -135,6 +135,36 @@ private:
                 if(inner_counter++ == inner_random) {
                     target = i;
                     break;
+                }
+            }
+        }
+
+        return std::pair{source, target};
+    }
+
+    [[nodiscard]] auto getMaxDistanceRemainingPair() const noexcept
+        -> std::pair<graph::Node, graph::Node>
+    {
+        auto nodes = utils::range(graph_.size());
+        graph::Node source = 0;
+        graph::Node target = 0;
+        auto max_dist = 0;
+
+        for(auto from : nodes) {
+            if(all_to_all_[from].empty()) {
+                continue;
+            }
+
+            for(auto to : nodes) {
+                if(all_to_all_[from][to]) {
+                    continue;
+                }
+
+                auto dist = distance_oracle_.findDistance(from, to);
+                if(dist != graph::UNREACHABLE and dist > max_dist) {
+                    max_dist = dist;
+                    source = from;
+                    target = to;
                 }
             }
         }

@@ -9,10 +9,14 @@ using graph::Node;
 
 NodeSelection::NodeSelection(Patch source_patch,
                              Patch target_patch,
-                             graph::Node center)
+                             graph::Node center,
+                             bool is_inverse_valid)
+
     : source_patch_(std::move(source_patch)),
       target_patch_(std::move(target_patch)),
-      center_(center) {}
+      center_(center),
+      is_inverse_valid_(is_inverse_valid)
+{}
 
 
 auto NodeSelection::weight() const noexcept
@@ -111,12 +115,15 @@ auto NodeSelection::deleteFromTarget(const std::vector<graph::Node>& nodes) noex
 
 namespace {
 
-template<class T, class U, class V>
-auto firstLessCompare(const std::pair<T, U>& lhs, const std::pair<T, V> rhs) noexcept
-    -> bool
+struct FirstLessCompare
 {
-    return lhs.first < rhs.first;
-}
+    template<class T, class U, class V>
+    auto operator()(const std::pair<T, U>& lhs, const std::pair<T, V> rhs) noexcept
+        -> bool
+    {
+        return lhs.first < rhs.first;
+    }
+};
 
 } // namespace
 
@@ -153,6 +160,12 @@ auto NodeSelection::isSubSetOf(const NodeSelection& other) const noexcept
                               }));
 }
 
+auto NodeSelection::isInverseValid() const noexcept
+    -> bool
+{
+    return is_inverse_valid_;
+}
+
 auto NodeSelection::canAnswer(Node from, Node to) const noexcept
     -> bool
 {
@@ -184,6 +197,19 @@ auto NodeSelection::toFile(std::string_view path) const noexcept
         file << "0: (" << node << ", " << dist << ")\n";
     }
     file << "center: " << center_ << "\n";
+}
+
+auto NodeSelection::clear() noexcept
+    -> void
+{
+    source_patch_.clear();
+    target_patch_.clear();
+}
+
+auto NodeSelection::isEmpty() const noexcept
+    -> bool
+{
+    return source_patch_.empty() and target_patch_.empty();
 }
 
 

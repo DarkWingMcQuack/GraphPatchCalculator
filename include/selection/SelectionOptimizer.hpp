@@ -15,7 +15,8 @@ class SelectionOptimizer
 {
 public:
     SelectionOptimizer(std::size_t number_of_nodes,
-                       std::vector<NodeSelection> selections);
+                       std::vector<NodeSelection> selections,
+                       std::size_t max_number_of_selections = std::numeric_limits<std::size_t>::max());
 
     auto optimize() noexcept
         -> void;
@@ -51,6 +52,8 @@ private:
 
     std::unordered_set<std::size_t> keep_list_left_;
     std::unordered_set<std::size_t> keep_list_right_;
+
+    std::size_t max_number_of_selections_;
 };
 
 } // namespace selection

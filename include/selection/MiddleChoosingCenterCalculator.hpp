@@ -18,8 +18,7 @@ class MiddleChoosingCenterCalculator
 public:
     MiddleChoosingCenterCalculator(const graph::Graph& graph)
         : graph_(graph),
-          path_finder_(graph_),
-          settled_(graph_.size(), false) {}
+          path_finder_(graph_){}
 
     auto calculateCenter(graph::Node from, graph::Node to) noexcept
         -> std::optional<graph::Node>
@@ -30,20 +29,7 @@ public:
         }
 
         auto path = std::move(path_opt.value());
-        auto initial_center_opt = findCenter(path);
-        if(!initial_center_opt) {
-            return std::nullopt;
-        }
-
-        auto initial_center = std::move(initial_center_opt.value());
-
-        auto optimized = optimzeCenter(from,
-                                       to,
-                                       initial_center);
-
-        reset();
-
-        return optimized;
+        return path.getMittleNode();
     }
 
 private:
@@ -59,31 +45,9 @@ private:
         return path.getMiddleNode();
     }
 
-    auto optimzeCenter(graph::Node /*source*/,
-                       graph::Node /*target*/,
-                       graph::Node initial_center) noexcept
-        -> graph::Node
-    {
-        return initial_center;
-    }
-
-    auto reset() noexcept
-        -> void
-    {
-        for(auto i : touched_) {
-            settled_[i] = false;
-        }
-
-        touched_.clear();
-        pq_ = pathfinding::DijkstraQueue{pathfinding::DijkstraQueueComparer{}};
-    }
-
 private:
     const graph::Graph& graph_;
     PathFinder path_finder_;
-    std::vector<bool> settled_;
-    std::vector<std::size_t> touched_;
-    pathfinding::DijkstraQueue pq_;
 };
 
 } // namespace selection

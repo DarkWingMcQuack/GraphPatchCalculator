@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <graph/Graph.hpp>
 #include <map>
 #include <pathfinding/Distance.hpp>
@@ -14,6 +15,8 @@
 namespace selection {
 
 using CenterSet = std::vector<std::pair<std::size_t, graph::Distance>>;
+using InversableCenterSet = std::vector<std::tuple<std::size_t, graph::Distance, bool>>;
+
 
 class SelectionLookup
 {
@@ -40,6 +43,9 @@ public:
 
     [[nodiscard]] auto getSizeDistributionTotal() const noexcept
         -> std::map<std::size_t, std::size_t>;
+
+    auto toFile(std::string_view path) const noexcept
+        -> void;
 
 private:
     [[nodiscard]] auto getCommonCenter(const CenterSet& first,

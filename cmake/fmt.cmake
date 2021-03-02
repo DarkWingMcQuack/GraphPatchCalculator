@@ -13,9 +13,9 @@ set(CMAKE_ARGS
 
 ExternalProject_Add(fmt-project
   PREFIX deps/fmt
-  DOWNLOAD_NAME fmt-6.2.0.tar.gz
+  DOWNLOAD_NAME fmt-7.1.3.tar.gz
   DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
-  URL https://github.com/fmtlib/fmt/archive/6.2.0.tar.gz
+  URL https://github.com/fmtlib/fmt/archive/7.1.3.tar.gz
   PATCH_COMMAND cmake -E make_directory <SOURCE_DIR>/win32-deps/include
   CMAKE_ARGS ${CMAKE_ARGS}
   # Overwtire build and install commands to force Release build on MSVC.
