@@ -31,7 +31,6 @@ endif()
 
 # needed for multithreading
 find_package(Threads REQUIRED)
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system serialization)
 
 include(cmake/flags.cmake)
 
@@ -62,8 +61,6 @@ target_sources(GraphPatchCalculatorSrc
   ${CMAKE_CURRENT_LIST_DIR}/include/pathfinding/CachingDijkstra.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/pathfinding/DijkstraQueue.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/pathfinding/Distance.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/include/pathfinding/FMIGraph.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/include/pathfinding/HubLabels.hpp
 
   PRIVATE
   src/graph/Graph.cpp
@@ -102,8 +99,7 @@ target_include_directories(GraphPatchCalculatorSrc PUBLIC
 #link against libarys
 target_link_libraries(GraphPatchCalculatorSrc LINK_PUBLIC
   fmt
-  tbb
-  ${Boost_LIBRARIES})
+  tbb)
 
 target_link_libraries(GraphPatchCalculatorSrc PRIVATE
   ${CMAKE_THREAD_LIBS_INIT})
@@ -130,8 +126,7 @@ target_link_libraries(GraphPatchCalculator LINK_PUBLIC
   GraphPatchCalculatorSrc
   fmt
   tbb
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${Boost_LIBRARIES})
+  ${CMAKE_THREAD_LIBS_INIT})
 
 # add the dependencies of the target to enforce
 # the right order of compiling

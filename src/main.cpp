@@ -5,7 +5,6 @@
 #include <graph/Graph.hpp>
 #include <pathfinding/CachingDijkstra.hpp>
 #include <pathfinding/Dijkstra.hpp>
-#include <pathfinding/HubLabels.hpp>
 #include <selection/ClosenessCentralityCenterCalculator.hpp>
 #include <selection/FullNodeSelectionCalculator.hpp>
 #include <selection/MiddleChoosingCenterCalculator.hpp>
@@ -176,19 +175,10 @@ auto main(int argc, char *argv[]) -> int
 
     fs::create_directories(result_folder);
 
-    if(options.hasFmiGraphFile()) {
-        auto hl = generateHubLabelsFromFmiFile(options.getFmiGraphFile().data());
-        runSelection(graph,
-                     hl,
-                     result_folder,
-                     prune_distance,
-                     max_selections);
-    } else {
-        CachingDijkstra distance_oracle{graph};
-        runSelection(graph,
-                     distance_oracle,
-                     result_folder,
-                     prune_distance,
-                     max_selections);
-    }
+    CachingDijkstra distance_oracle{graph};
+    runSelection(graph,
+                 distance_oracle,
+                 result_folder,
+                 prune_distance,
+                 max_selections);
 }

@@ -29,7 +29,7 @@ public:
         }
 
         auto path = std::move(path_opt.value());
-        return path.getMittleNode();
+        return path.getMiddleNode();
     }
 
 private:
