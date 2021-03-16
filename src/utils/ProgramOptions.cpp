@@ -3,11 +3,12 @@
 #include <string>
 #include <string_view>
 #include <utils/ProgramOptions.hpp>
+#include <pathfinding/Distance.hpp>
 
 using utils::ProgramOptions;
 
 
-ProgramOptions::ProgramOptions(std::size_t prune_distance,
+ProgramOptions::ProgramOptions(graph::Distance prune_distance,
                                std::string graph_file,
                                std::size_t maximum_number_of_selections_per_node,
                                std::optional<std::string> result_folder)
@@ -36,7 +37,7 @@ auto ProgramOptions::getResultFolder() const noexcept
 }
 
 auto ProgramOptions::getPruneDistance() const noexcept
-    -> std::size_t
+    -> graph::Distance
 {
     return prune_distance_;
 }
@@ -55,7 +56,7 @@ auto utils::parseArguments(int argc, char* argv[])
 
     std::string graph_file;
     std::string result_folder;
-    std::size_t prune_distance = 1;
+    graph::Distance prune_distance = 0;
     std::size_t maximum_selections = std::numeric_limits<std::size_t>::max();
 
     app.add_option("-g,--graph",

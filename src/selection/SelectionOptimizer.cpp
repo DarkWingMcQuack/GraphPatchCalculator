@@ -164,7 +164,7 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
     std::unordered_set<std::size_t> new_selection_set;
     std::unordered_set<graph::Node> covered_nodes;
 
-    auto counter = 0;
+    auto counter = 0ul;
     for(auto [idx, _] : left_secs) {
         if(keep_list_left_.count(idx) == 0 or counter > max_number_of_selections_) {
             continue;
@@ -221,7 +221,7 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
 
     std::unordered_set<graph::Node> covered_nodes;
     std::unordered_set<std::size_t> new_selection_set;
-    auto counter = 0;
+    auto counter = 0ul;
     for(auto [idx, _] : right_secs) {
         if(keep_list_right_.count(idx) == 0 or counter > max_number_of_selections_) {
             continue;

@@ -1,13 +1,13 @@
 #include <execution>
 #include <fmt/core.h>
-#include <fmt/ostream.h>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <fstream>
 #include <graph/Graph.hpp>
 #include <map>
 #include <pathfinding/Distance.hpp>
 #include <queue>
 #include <random>
-#include <fstream>
 #include <selection/NodeSelection.hpp>
 #include <selection/SelectionLookup.hpp>
 #include <unordered_set>
@@ -152,8 +152,8 @@ auto SelectionLookup::toFile(std::string_view path) const noexcept
 {
     std::ofstream file{path.data()};
 
-	for(auto node : utils::range(number_of_nodes_)){
-	  file << node << fmt::format("{}", fmt::join(source_selections_[node], ",")) << "\n";
-	  file << node << fmt::format("{}", fmt::join(target_selections_[node], ",")) << "\n";
-	}
+    for(auto node : utils::range(number_of_nodes_)) {
+        file << node << fmt::format("{}", fmt::join(source_selections_[node], ",")) << "\n";
+        file << node << fmt::format("{}", fmt::join(target_selections_[node], ",")) << "\n";
+    }
 }

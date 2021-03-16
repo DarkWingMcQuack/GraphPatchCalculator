@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/core.h>
 #include <graph/Graph.hpp>
 #include <pathfinding/Distance.hpp>
 #include <queue>
@@ -80,12 +81,15 @@ public:
     }
 
 private:
-    [[nodiscard]] auto processSourceCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+    [[nodiscard]] auto processSourceCandidate(graph::Node node,
+											  graph::Node center,
+											  graph::Node start) noexcept
         -> bool
     {
-        if(node == center or node == start) {
+        if(node == start or node == center) {
             return false;
         }
+
 
         if(countNewPathsForSource(node) == 0) {
             return false;
@@ -104,17 +108,19 @@ private:
         return false;
     }
 
-    [[nodiscard]] auto processTargetCandidate(graph::Node node, graph::Node center, graph::Node start) noexcept
+    [[nodiscard]] auto processTargetCandidate(graph::Node node,
+											  graph::Node center,
+											  graph::Node start) noexcept
         -> bool
     {
-        if(node == center or node == start) {
+        if(node == start or node == center) {
             return false;
         }
+
 
         if(countNewPathsForTarget(node) == 0) {
             return false;
         }
-
 
         auto target_dist_opt = checkTargetAffiliation(node,
                                                       center,
@@ -172,10 +178,10 @@ private:
             std::begin(sources),
             std::end(sources),
             [&](auto pair) {
-                auto [source, center_target_dist] = pair;
+                auto [source, source_center_dist] = pair;
 
                 auto dist = distance_oracle_.findDistance(source, target);
-                return center_dist + center_target_dist == dist;
+                return center_dist + source_center_dist == dist;
             });
 
         if(!valid) {
@@ -236,8 +242,8 @@ private:
 
     const graph::Graph& graph_;
 
-    std::vector<std::pair<graph::Node, graph::Distance>> source_patch_;
-    std::vector<std::pair<graph::Node, graph::Distance>> target_patch_;
+    Patch source_patch_;
+    Patch target_patch_;
     const std::vector<std::vector<bool>>& coverage_;
 };
 

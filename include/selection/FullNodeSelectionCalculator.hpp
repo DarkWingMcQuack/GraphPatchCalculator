@@ -22,7 +22,7 @@ public:
     FullNodeSelectionCalculator(const graph::Graph& graph,
                                 const DistanceOracle& distance_oracle,
                                 CenterCalculator center_calculator,
-                                std::size_t prune_distance)
+                                graph::Distance prune_distance)
         : graph_(graph),
           distance_oracle_(distance_oracle),
           all_to_all_(graph.size()),
@@ -59,7 +59,7 @@ public:
 
         while(!done()) {
 
-            auto [first, second] = getRandomRemainingPair();
+		  auto [first, second] = getRandomRemainingPair();
 
             auto selection_opt = node_selector_.calculateFullSelection(first, second);
             if(!selection_opt) {

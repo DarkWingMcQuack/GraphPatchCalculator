@@ -29,33 +29,44 @@ auto queryAll(const graph::Graph &graph,
 {
     auto number_of_nodes = graph.size();
     auto found = 0;
-    auto not_fount = 0;
-    for(auto from : utils::range(number_of_nodes)) {
-        for(auto to : utils::range(number_of_nodes)) {
-            if(from == to) {
-                continue;
-            }
+    utils::Timer my_timer;
+    for(graph::Node from = 0; from < number_of_nodes; from++) {
+	  for(graph::Node to = 0; to < number_of_nodes; to++) {
+            // if(from == to) {
+            //     continue;
+            // }
             auto selection_result = lookup.getSelectionAnswering(from, to);
-            auto oracle_result = oracle.findDistance(from, to);
+            // auto oracle_result = oracle.findDistance(from, to);
 
-            if(selection_result and selection_result.value().second == oracle_result) {
+            if(selection_result) {
                 found++;
-            } else if(selection_result and selection_result.value().second != oracle_result) {
-                fmt::print("{} - {} oracle: {}, us: {}\n",
-                           from,
-                           to,
-                           oracle_result,
-                           selection_result.value().second);
-            } else if(!selection_result and oracle_result == graph::UNREACHABLE) {
-                found++;
-            } else {
-                not_fount++;
             }
         }
     }
 
+	auto elapsed = my_timer.elapsed();
+
     fmt::print("found: {}\n", found);
-    fmt::print("not found: {}\n", not_fount);
+    fmt::print("time all to all: {}\n", elapsed);
+    // fmt::print("not found: {}\n", not_fount);
+
+    found = 0;
+	my_timer.reset();
+    for(graph::Node from = 0; from < number_of_nodes; from++) {
+	  for(graph::Node to = 0; to < number_of_nodes; to++) {
+            auto oracle_result = oracle.findDistance(from, to);
+
+            if(oracle_result != graph::UNREACHABLE) {
+                found++;
+            }
+        }
+    }
+
+	elapsed = my_timer.elapsed();
+
+    fmt::print("found: {}\n", found);
+    fmt::print("time all to all: {}\n", elapsed);
+    fmt::print("per call: {}\n", elapsed / (number_of_nodes * number_of_nodes));
 }
 
 template<class DistanceOracle>
@@ -120,7 +131,7 @@ template<class DistanceOracle>
 auto runSelection(const graph::Graph &graph,
                   const DistanceOracle &distance_oracle,
                   std::string_view result_folder,
-                  std::size_t prune_distance,
+                  graph::Distance prune_distance,
                   std::size_t max_selections)
 {
     using CenterCalculator = selection::MiddleChoosingCenterCalculator<Dijkstra>;

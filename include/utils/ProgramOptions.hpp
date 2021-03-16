@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <optional>
+#include <pathfinding/Distance.hpp>
 #include <string>
 #include <string_view>
 
@@ -10,7 +11,7 @@ namespace utils {
 class ProgramOptions
 {
 public:
-    ProgramOptions(std::size_t prune_distance,
+    ProgramOptions(graph::Distance prune_distance,
                    std::string graph_file,
                    std::size_t maximum_number_of_selections_per_node,
                    std::optional<std::string> result_folder = std::nullopt);
@@ -25,13 +26,13 @@ public:
         -> std::string_view;
 
     auto getPruneDistance() const noexcept
-        -> std::size_t;
+        -> graph::Distance;
 
     auto getMaxNumberOfSelectionsPerNode() const noexcept
         -> std::size_t;
 
 private:
-    std::size_t prune_distance_;
+    graph::Distance prune_distance_;
     std::string graph_file_;
     std::size_t maximum_number_of_selections_per_node_;
     std::optional<std::string> separation_folder_;
