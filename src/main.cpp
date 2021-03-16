@@ -48,6 +48,7 @@ auto queryAll(const graph::Graph &graph,
 
     fmt::print("found: {}\n", found);
     fmt::print("time all to all: {}\n", elapsed);
+    fmt::print("per call: {}\n", elapsed / (number_of_nodes * number_of_nodes));
     // fmt::print("not found: {}\n", not_fount);
 
     found = 0;
