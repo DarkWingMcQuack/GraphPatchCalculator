@@ -163,6 +163,8 @@ auto runSelection(const graph::Graph &graph,
 
     selection::SelectionOptimizer optimizer{graph.size(),
                                             std::move(selections),
+											distance_oracle,
+											prune_distance,
                                             max_selections};
     optimizer.optimize();
 

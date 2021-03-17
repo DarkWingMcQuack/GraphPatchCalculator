@@ -12,14 +12,19 @@
 using selection::SelectionLookup;
 using selection::SelectionOptimizer;
 
+
 SelectionOptimizer::SelectionOptimizer(std::size_t number_of_nodes,
                                        std::vector<NodeSelection> selections,
+                                       const pathfinding::CachingDijkstra& oracle,
+                                       graph::Distance min_dist,
                                        std::size_t max_number_of_selections)
     : number_of_nodes_(number_of_nodes),
       selections_(std::move(selections)),
       source_selections_(number_of_nodes_),
       target_selections_(number_of_nodes_),
-	  max_number_of_selections_(max_number_of_selections)
+      oracle_(oracle),
+      min_dist_(min_dist),
+      max_number_of_selections_(max_number_of_selections)
 {
     for(const auto& [i, selection] : utils::enumerate(selections_)) {
         for(auto [node, dist] : selection.getSourcePatch()) {
@@ -101,7 +106,8 @@ auto SelectionOptimizer::getLeftOptimalGreedySelection(graph::Node node,
                                               std::end(right_nodes),
                                               [&](auto n) {
                                                   return nodes.count(n.first) == 0
-                                                      and node != n.first;
+                                                      and node != n.first
+                                                      and oracle_.findDistance(node, n.first) > min_dist_;
                                               });
 
                    return std::pair{idx, score};
@@ -138,13 +144,29 @@ auto SelectionOptimizer::getRightOptimalGreedySelection(graph::Node node,
                                               std::end(left_nodes),
                                               [&](auto n) {
                                                   return nodes.count(n.first) == 0
-                                                      and node != n.first;
+                                                      and node != n.first
+                                                      and oracle_.findDistance(n.first, node) > min_dist_;
                                               });
 
                    return std::pair{idx, score};
                })
         .first;
 }
+
+namespace {
+
+auto isContainedIn(std::unordered_set<graph::Node>& first,
+                   std::unordered_set<graph::Node>& second) noexcept
+    -> bool
+{
+    return std::all_of(std::begin(first),
+                       std::end(first),
+                       [&](auto node) {
+                           return second.count(node) > 0;
+                       });
+}
+
+} // namespace
 
 auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
     -> void
@@ -155,7 +177,9 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
     for(auto [idx, _] : left_secs) {
         const auto& target_nodes = selections_[idx].getTargetPatch();
         for(auto [target, _] : target_nodes) {
-            all_nodes.insert(target);
+            if(oracle_.findDistance(node, target) > min_dist_) {
+                all_nodes.insert(target);
+            }
         }
     }
 
@@ -180,7 +204,8 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
         counter++;
     }
 
-    while(covered_nodes.size() < all_nodes.size() and counter <= max_number_of_selections_) {
+    while(!isContainedIn(all_nodes, covered_nodes)
+          and counter <= max_number_of_selections_) {
         auto next_selection_idx = getLeftOptimalGreedySelection(node, covered_nodes);
         const auto& target_nodes = selections_[next_selection_idx].getTargetPatch();
 
@@ -213,7 +238,9 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
     for(auto [idx, _] : right_secs) {
         const auto& source_nodes = selections_[idx].getSourcePatch();
         for(auto [source, _] : source_nodes) {
-            all_nodes.insert(source);
+            if(oracle_.findDistance(source, node) > min_dist_) {
+                all_nodes.insert(source);
+            }
         }
     }
 
@@ -236,7 +263,8 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
         counter++;
     }
 
-    while(covered_nodes.size() < all_nodes.size() and counter <= max_number_of_selections_) {
+    while(!isContainedIn(all_nodes, covered_nodes)
+          and counter <= max_number_of_selections_) {
         auto next_selection_idx = getRightOptimalGreedySelection(node, covered_nodes);
         const auto& source_nodes = selections_[next_selection_idx].getSourcePatch();
 

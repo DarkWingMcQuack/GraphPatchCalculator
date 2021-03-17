@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fmt/core.h>
+#include <pathfinding/CachingDijkstra.hpp>
 #include <pathfinding/Distance.hpp>
 #include <queue>
 #include <random>
@@ -16,6 +17,8 @@ class SelectionOptimizer
 public:
     SelectionOptimizer(std::size_t number_of_nodes,
                        std::vector<NodeSelection> selections,
+                       const pathfinding::CachingDijkstra& oracle,
+                       graph::Distance min_dist,
                        std::size_t max_number_of_selections = std::numeric_limits<std::size_t>::max());
 
     auto optimize() noexcept
@@ -53,7 +56,11 @@ private:
     std::unordered_set<std::size_t> keep_list_left_;
     std::unordered_set<std::size_t> keep_list_right_;
 
+    const pathfinding::CachingDijkstra& oracle_;
+    graph::Distance min_dist_;
+
     std::size_t max_number_of_selections_;
+
 };
 
 } // namespace selection
