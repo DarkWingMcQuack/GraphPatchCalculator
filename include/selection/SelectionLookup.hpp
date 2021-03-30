@@ -48,7 +48,9 @@ public:
         -> void;
 
 private:
-    [[nodiscard]] auto getCommonCenter(const CenterSet& first,
+    [[nodiscard]] auto getCommonCenter(graph::Node source,
+                                       graph::Node target,
+                                       const CenterSet& first,
                                        const CenterSet& second) const noexcept
         -> std::optional<std::pair<graph::Node, graph::Distance>>;
 

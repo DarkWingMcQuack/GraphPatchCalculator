@@ -35,13 +35,16 @@ auto SelectionLookup::getSelectionAnswering(const graph::Node& source,
     const auto& first_source_selections = source_selections_[source];
     const auto& second_target_selections = target_selections_[target];
 
-    return getCommonCenter(first_source_selections,
+    return getCommonCenter(source,
+                           target,
+                           first_source_selections,
                            second_target_selections);
 }
 
-auto SelectionLookup::getCommonCenter(
-    const CenterSet& first,
-    const CenterSet& second) const noexcept
+auto SelectionLookup::getCommonCenter(graph::Node source,
+                                      graph::Node target,
+                                      const CenterSet& first,
+                                      const CenterSet& second) const noexcept
     -> std::optional<std::pair<graph::Node, graph::Distance>>
 {
     auto iter1 = std::cbegin(first);
@@ -50,6 +53,19 @@ auto SelectionLookup::getCommonCenter(
     auto iter2_end = std::cend(second);
 
     while(iter1 != iter1_end and iter2 != iter2_end) {
+        auto center1 = centers_[iter1->first];
+
+        if(center1 == target) {
+            auto distance = iter1->second;
+            return std::pair{center1, distance};
+        }
+
+        auto center2 = centers_[iter2->first];
+        if(center2 == source) {
+            auto distance = iter2->second;
+            return std::pair{center2, distance};
+        }
+
         if(iter1->first < iter2->first) {
             ++iter1;
         } else if(iter2->first < iter1->first) {

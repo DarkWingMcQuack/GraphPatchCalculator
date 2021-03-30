@@ -176,6 +176,11 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
 
     for(auto [idx, _] : left_secs) {
         const auto& target_nodes = selections_[idx].getTargetPatch();
+
+        if(selections_[idx].getCenter() == node) {
+            continue;
+        }
+
         for(auto [target, _] : target_nodes) {
             if(oracle_.findDistance(node, target) > min_dist_) {
                 all_nodes.insert(target);
@@ -183,14 +188,12 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
         }
     }
 
-    all_nodes.erase(node);
-
     std::unordered_set<std::size_t> new_selection_set;
     std::unordered_set<graph::Node> covered_nodes;
 
     auto counter = 0ul;
     for(auto [idx, _] : left_secs) {
-        if(keep_list_left_.count(idx) == 0 or counter > max_number_of_selections_) {
+        if(keep_list_left_.count(idx) == 0) {
             continue;
         }
 
@@ -200,8 +203,13 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
             covered_nodes.insert(target);
         }
 
-        new_selection_set.emplace(idx);
-        counter++;
+        if(selections_[idx].getCenter() != node) {
+            new_selection_set.emplace(idx);
+        }
+
+        if(++counter > max_number_of_selections_) {
+            break;
+        }
     }
 
     while(!isContainedIn(all_nodes, covered_nodes)
@@ -213,11 +221,11 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
             covered_nodes.insert(target);
         }
 
-        covered_nodes.erase(node);
-
+        if(selections_[next_selection_idx].getCenter() != node) {
+            keep_list_left_.emplace(next_selection_idx);
+            counter++;
+        }
         new_selection_set.emplace(next_selection_idx);
-        keep_list_left_.emplace(next_selection_idx);
-        counter++;
     }
 
     source_selections_[node].erase(
@@ -250,7 +258,7 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
     std::unordered_set<std::size_t> new_selection_set;
     auto counter = 0ul;
     for(auto [idx, _] : right_secs) {
-        if(keep_list_right_.count(idx) == 0 or counter > max_number_of_selections_) {
+        if(keep_list_right_.count(idx) == 0) {
             continue;
         }
 
@@ -259,8 +267,14 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
         for(auto [source, _] : source_nodes) {
             covered_nodes.insert(source);
         }
-        new_selection_set.emplace(idx);
-        counter++;
+
+        if(selections_[idx].getCenter() != node) {
+            new_selection_set.emplace(idx);
+        }
+
+        if(++counter > max_number_of_selections_) {
+            break;
+        }
     }
 
     while(!isContainedIn(all_nodes, covered_nodes)
@@ -272,12 +286,11 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
             covered_nodes.insert(source);
         }
 
-        covered_nodes.erase(node);
-
-        new_selection_set.emplace(next_selection_idx);
+        if(selections_[next_selection_idx].getCenter() != node) {
+            new_selection_set.emplace(next_selection_idx);
+            counter++;
+        }
         keep_list_right_.emplace(next_selection_idx);
-
-        counter++;
     }
 
 
