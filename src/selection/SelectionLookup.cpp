@@ -122,31 +122,22 @@ auto SelectionLookup::getSizeDistributionTarget() const noexcept
 auto SelectionLookup::getSizeDistributionTotal() const noexcept
     -> std::map<std::size_t, std::size_t>
 {
-
     std::map<std::size_t, std::size_t> ret_map;
     for(auto n : utils::range(number_of_nodes_)) {
         const auto& s = source_selections_[n];
+        const auto& t = target_selections_[n];
 
-        auto iter = ret_map.find(s.size());
+        auto key = s.size() + t.size();
+
+        auto iter = ret_map.find(key);
 
         if(iter == std::end(ret_map)) {
-            ret_map[s.size()] = 1;
+            ret_map[key] = 1;
         } else {
             iter->second++;
         }
     }
 
-    for(auto n : utils::range(number_of_nodes_)) {
-        const auto& s = target_selections_[n];
-
-        auto iter = ret_map.find(s.size());
-
-        if(iter == std::end(ret_map)) {
-            ret_map[s.size()] = 1;
-        } else {
-            iter->second++;
-        }
-    }
     return ret_map;
 }
 
