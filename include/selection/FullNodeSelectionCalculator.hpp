@@ -54,7 +54,6 @@ public:
     {
         std::vector<NodeSelection> calculated_selections;
 
-        progresscpp::ProgressBar bar{graph_.size(), 80ul};
         auto done_counter = countDoneNodes();
 
         while(!done()) {
@@ -80,13 +79,8 @@ public:
             //update progress bar
             auto new_done = countDoneNodes();
             auto diff = new_done - done_counter;
-            bar += diff;
             done_counter = new_done;
-
-            bar.displayIfChangedAtLeast(0.001);
         }
-
-        bar.done();
 
         return calculated_selections;
     }

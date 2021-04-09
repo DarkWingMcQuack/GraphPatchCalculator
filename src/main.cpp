@@ -29,45 +29,56 @@ auto queryAll(const graph::Graph &graph,
 {
     auto number_of_nodes = graph.size();
     auto found = 0;
+    auto not_found = 0;
+    auto found_query_time = 0.0;
+    auto not_found_query_time = 0.0;
+
     utils::Timer my_timer;
     for(graph::Node from = 0; from < number_of_nodes; from++) {
-	  for(graph::Node to = 0; to < number_of_nodes; to++) {
-            // if(from == to) {
-            //     continue;
-            // }
+        for(graph::Node to = 0; to < number_of_nodes; to++) {
+            if(from == to) {
+                continue;
+            }
+
+            my_timer.reset();
             auto selection_result = lookup.getSelectionAnswering(from, to);
+            auto new_time = my_timer.elapsed();
             // auto oracle_result = oracle.findDistance(from, to);
 
             if(selection_result) {
                 found++;
+                found_query_time += new_time;
+            } else {
+                not_found++;
+                not_found_query_time += new_time;
             }
         }
     }
 
-	auto elapsed = my_timer.elapsed();
 
-    fmt::print("found: {}\n", found);
-    fmt::print("time all to all: {}\n", elapsed);
-    fmt::print("per call: {}\n", elapsed / (number_of_nodes * number_of_nodes));
-    // fmt::print("not found: {}\n", not_fount);
-
-    found = 0;
-	my_timer.reset();
+    auto all_found = 0;
+    auto all_not_found = 0;
+    my_timer.reset();
     for(graph::Node from = 0; from < number_of_nodes; from++) {
-	  for(graph::Node to = 0; to < number_of_nodes; to++) {
+        for(graph::Node to = 0; to < number_of_nodes; to++) {
             auto oracle_result = oracle.findDistance(from, to);
 
             if(oracle_result != graph::UNREACHABLE) {
-                found++;
+                all_found++;
+            } else {
+                not_found++;
             }
         }
     }
 
-	elapsed = my_timer.elapsed();
 
-    fmt::print("found: {}\n", found);
-    fmt::print("time all to all: {}\n", elapsed);
-    fmt::print("per call: {}\n", elapsed / (number_of_nodes * number_of_nodes));
+    auto elapsed = my_timer.elapsed();
+
+    fmt::print("{} \t {} \t {} \t {}",
+               found_query_time / found,
+               not_found_query_time / not_found,
+               static_cast<double>(found) / static_cast<double>(not_found),
+               elapsed / (all_found + all_not_found));
 }
 
 template<class DistanceOracle>
@@ -145,34 +156,31 @@ auto runSelection(const graph::Graph &graph,
                                              std::move(center_calculator),
                                              prune_distance};
 
+	utils::Timer t;
+
+	t.reset();
     auto selections = selection_calculator.calculateFullNodeSelection();
+	auto time = t.elapsed();
+	fmt::print("{} \t ", time);
+
+
 
     std::sort(std::rbegin(selections),
               std::rend(selections),
               [](const auto &lhs, const auto &rhs) {
                   return lhs.weight() < rhs.weight();
               });
-    fmt::print("selections: {}\n", selections.size());
-
-    // selections = mergeSelections(std::move(selections),
-    //                              distance_oracle);
-
-    fmt::print("selections: {}\n", selections.size());
 
     writeToFiles(graph, result_folder, selections);
 
     selection::SelectionOptimizer optimizer{graph.size(),
                                             std::move(selections),
-											distance_oracle,
-											prune_distance,
+                                            distance_oracle,
+                                            prune_distance,
                                             max_selections};
     optimizer.optimize();
 
     auto lookup = std::move(optimizer).getLookup();
-
-    for(auto [size, amount] : lookup.getSizeDistributionTotal()) {
-        fmt::print("{} : {},\n", size, amount);
-    }
 
     queryAll(graph, distance_oracle, lookup);
 }

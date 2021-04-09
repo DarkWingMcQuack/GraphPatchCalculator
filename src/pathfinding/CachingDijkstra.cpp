@@ -25,17 +25,11 @@ CachingDijkstra::CachingDijkstra(const graph::Graph& graph) noexcept
       distance_cache_(graph.size(),
                       std::vector(graph.size(), UNREACHABLE))
 {
-    fmt::print("computing all to all pairs...\n");
-    progresscpp::ProgressBar bar{graph.size(), 80ul};
-
     for(auto from : utils::range(graph_.size())) {
         for(auto to : utils::range(graph.size())) {
 			distance_cache_[from][to] = computeDistance(from, to);
         }
-        bar++;
-        bar.displayIfChangedAtLeast(0.02);
     }
-    bar.done();
 
     //cleanup everything to save memory
     distances_.clear();

@@ -77,6 +77,30 @@ auto SelectionLookup::getCommonCenter(graph::Node source,
         }
     }
 
+    if(iter1 != iter1_end) {
+        while(iter1 != iter1_end) {
+            auto center1 = centers_[iter1->first];
+            if(center1 == target) {
+                auto distance = iter1->second;
+                return std::pair{center1, distance};
+            }
+
+            iter1++;
+        }
+    }
+
+    if(iter2 != iter2_end) {
+        while(iter2 != iter2_end) {
+            auto center2 = centers_[iter2->first];
+            if(center2 == source) {
+                auto distance = iter2->second;
+                return std::pair{center2, distance};
+            }
+
+            iter2++;
+        }
+    }
+
     return std::nullopt;
 }
 

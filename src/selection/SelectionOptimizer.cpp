@@ -70,6 +70,7 @@ auto SelectionOptimizer::getLookup() && noexcept
                            std::move(target_selections_)};
 }
 
+
 auto SelectionOptimizer::optimize(std::size_t idx) noexcept
     -> void
 {
@@ -84,7 +85,7 @@ auto SelectionOptimizer::getLeftOptimalGreedySelection(graph::Node node,
     const auto& node_selects = source_selections_[node];
 
     return std::transform_reduce(
-               std::execution::par_unseq,
+               std::execution::unseq,
                std::begin(node_selects),
                std::end(node_selects),
                std::pair{node_selects[0].first, 0l},
@@ -122,7 +123,7 @@ auto SelectionOptimizer::getRightOptimalGreedySelection(graph::Node node,
     const auto& node_selects = target_selections_[node];
 
     return std::transform_reduce(
-               std::execution::par_unseq,
+               std::execution::unseq,
                std::begin(node_selects),
                std::end(node_selects),
                std::pair{node_selects[0].first, 0l},
@@ -197,6 +198,10 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
             continue;
         }
 
+		if(counter++ >= max_number_of_selections_){
+		  break;
+		}
+
         const auto& target_nodes = selections_[idx].getTargetPatch();
 
         for(auto [target, _] : target_nodes) {
@@ -206,14 +211,10 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
         if(selections_[idx].getCenter() != node) {
             new_selection_set.emplace(idx);
         }
-
-        if(++counter > max_number_of_selections_) {
-            break;
-        }
     }
 
-    while(!isContainedIn(all_nodes, covered_nodes)
-          and counter <= max_number_of_selections_) {
+    while(counter < max_number_of_selections_
+          and !isContainedIn(all_nodes, covered_nodes)) {
         auto next_selection_idx = getLeftOptimalGreedySelection(node, covered_nodes);
         const auto& target_nodes = selections_[next_selection_idx].getTargetPatch();
 
@@ -262,6 +263,10 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
             continue;
         }
 
+		if(counter++ >= max_number_of_selections_){
+		  break;
+		}
+
         const auto& source_nodes = selections_[idx].getSourcePatch();
 
         for(auto [source, _] : source_nodes) {
@@ -271,14 +276,10 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
         if(selections_[idx].getCenter() != node) {
             new_selection_set.emplace(idx);
         }
-
-        if(++counter > max_number_of_selections_) {
-            break;
-        }
     }
 
-    while(!isContainedIn(all_nodes, covered_nodes)
-          and counter <= max_number_of_selections_) {
+    while(counter < max_number_of_selections_
+          and !isContainedIn(all_nodes, covered_nodes)) {
         auto next_selection_idx = getRightOptimalGreedySelection(node, covered_nodes);
         const auto& source_nodes = selections_[next_selection_idx].getSourcePatch();
 
