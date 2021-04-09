@@ -71,10 +71,9 @@ auto queryAll(const graph::Graph &graph,
         }
     }
 
-
     auto elapsed = my_timer.elapsed();
 
-    fmt::print("{} \t {} \t {} \t {}",
+    fmt::print("{} \t {} \t {} \t {}\n",
                found_query_time / found,
                not_found_query_time / not_found,
                static_cast<double>(found) / static_cast<double>(not_found),
