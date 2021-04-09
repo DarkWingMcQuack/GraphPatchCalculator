@@ -3,7 +3,6 @@
 #include <fmt/ostream.h>
 #include <graph/Graph.hpp>
 #include <pathfinding/Distance.hpp>
-#include <progresscpp/ProgressBar.hpp>
 #include <selection/NodeSelection.hpp>
 #include <selection/SelectionOptimizer.hpp>
 #include <utils/Range.hpp>
@@ -40,17 +39,9 @@ SelectionOptimizer::SelectionOptimizer(std::size_t number_of_nodes,
 auto SelectionOptimizer::optimize() noexcept
     -> void
 {
-    fmt::print("optimizing patch lookup...\n");
-    progresscpp::ProgressBar bar{number_of_nodes_, 80ul};
-
     for(auto n : utils::range(number_of_nodes_)) {
         optimize(n);
-
-        bar++;
-        bar.displayIfChangedAtLeast(0.001);
     }
-
-    bar.done();
 }
 
 auto SelectionOptimizer::getLookup() && noexcept
