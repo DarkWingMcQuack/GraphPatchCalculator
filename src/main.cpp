@@ -28,8 +28,8 @@ auto queryAll(const graph::Graph &graph,
               const selection::SelectionLookup &lookup)
 {
     auto number_of_nodes = graph.size();
-    auto found = 0;
-    auto not_found = 0;
+    auto found = 0ul;
+    auto not_found = 0ul;
     auto found_query_time = 0.0;
     auto not_found_query_time = 0.0;
 
@@ -56,8 +56,8 @@ auto queryAll(const graph::Graph &graph,
     }
 
 
-    auto all_found = 0;
-    auto all_not_found = 0;
+    auto all_found = 0ul;
+    auto all_not_found = 0ul;
     my_timer.reset();
     for(graph::Node from = 0; from < number_of_nodes; from++) {
         for(graph::Node to = 0; to < number_of_nodes; to++) {
