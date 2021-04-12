@@ -20,7 +20,8 @@ Dijkstra::Dijkstra(const graph::Graph& graph) noexcept
       distances_(graph.size(), UNREACHABLE),
       settled_(graph.size(), false),
       pq_(DijkstraQueueComparer{}),
-      before_(graph.size(), graph::NOT_REACHABLE) {}
+      before_(graph.size(), graph::NOT_REACHABLE),
+      rank_(graph.size(), UNREACHABLE) {}
 
 auto Dijkstra::findRoute(graph::Node source, graph::Node target) noexcept
     -> std::optional<Path>
@@ -74,10 +75,12 @@ auto Dijkstra::reset() noexcept
         unSettle(n);
         setDistanceTo(n, UNREACHABLE);
         setBefore(n, graph::NOT_REACHABLE);
+        rank_[n] = UNREACHABLE;
     }
 
     touched_.clear();
     pq_ = DijkstraQueue{DijkstraQueueComparer{}};
+    current_rank_ = 0;
 }
 
 auto Dijkstra::unSettle(graph::Node n)
@@ -146,6 +149,56 @@ auto Dijkstra::computeDistance(graph::Node source, graph::Node target) noexcept
     }
 
     return getDistanceTo(target);
+}
+
+auto Dijkstra::calculateDijkstraRank(graph::Node source, graph::Node target) noexcept
+    -> std::size_t
+{
+    using graph::UNREACHABLE;
+
+    if(source == last_source_ and rank_[target] != UNREACHABLE) {
+        return rank_[target];
+    }
+
+    if(source != last_source_) {
+        last_source_ = source;
+        reset();
+        pq_.emplace(source, 0l);
+        setDistanceTo(source, 0);
+        touched_.emplace_back(source);
+    }
+
+    while(!pq_.empty()) {
+        auto [current_node, current_dist] = pq_.top();
+
+        rank_[current_node] = current_rank_++;
+        settle(current_node);
+
+        if(current_node == target) {
+            return rank_[current_node];
+        }
+
+        //pop after the return, otherwise we loose a value
+        //when reusing the pq
+        pq_.pop();
+
+        auto neigbours = graph_.getForwardNeigboursOf(current_node);
+
+        for(auto [neig, distance] : neigbours) {
+
+            auto neig_dist = getDistanceTo(neig);
+            auto new_dist = current_dist + distance;
+
+            if(UNREACHABLE != current_dist and neig_dist > new_dist) {
+                touched_.emplace_back(neig);
+                setDistanceTo(neig, new_dist);
+                pq_.emplace(neig, new_dist);
+                setBefore(neig, current_node);
+            }
+        }
+    }
+
+    return UNREACHABLE;
 }
 
 auto Dijkstra::setBefore(graph::Node n, graph::Node before) noexcept

@@ -33,6 +33,9 @@ public:
     [[nodiscard]] auto findDistance(graph::Node source, graph::Node target) noexcept
         -> graph::Distance;
 
+    [[nodiscard]] auto calculateDijkstraRank(graph::Node source, graph::Node target) noexcept
+        -> std::size_t;
+
 protected:
     [[nodiscard]] auto getDistanceTo(graph::Node n) const noexcept
         -> graph::Distance;
@@ -69,6 +72,8 @@ private:
     DijkstraQueue pq_;
     std::optional<graph::Node> last_source_;
     std::vector<graph::Node> before_;
+    std::vector<std::size_t> rank_;
+    std::size_t current_rank_ = 0;
 };
 
 
