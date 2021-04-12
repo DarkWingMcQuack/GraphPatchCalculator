@@ -54,8 +54,6 @@ public:
     {
         std::vector<NodeSelection> calculated_selections;
 
-        auto done_counter = countDoneNodes();
-
         while(!done()) {
 
 		  auto [first, second] = getRandomRemainingPair();
@@ -75,11 +73,6 @@ public:
 
             eraseNodeSelection(selection);
             calculated_selections.emplace_back(std::move(selection));
-
-            //update progress bar
-            auto new_done = countDoneNodes();
-            auto diff = new_done - done_counter;
-            done_counter = new_done;
         }
 
         return calculated_selections;
