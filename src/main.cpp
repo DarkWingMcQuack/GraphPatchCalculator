@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
+#include <fstream>
 #include <graph/Graph.hpp>
 #include <pathfinding/CachingDijkstra.hpp>
 #include <pathfinding/Dijkstra.hpp>
@@ -25,13 +26,19 @@ namespace fs = std::filesystem;
 template<class DistanceOracle>
 auto queryAll(const graph::Graph &graph,
               const DistanceOracle &oracle,
-              const selection::SelectionLookup &lookup)
+              const selection::SelectionLookup &lookup) noexcept
+    -> std::pair<
+        std::map<std::size_t, std::pair<double, std::size_t>>,
+        std::map<std::size_t, std::pair<double, std::size_t>>>
 {
     auto number_of_nodes = graph.size();
     auto found = 0ul;
     auto not_found = 0ul;
     auto found_query_time = 0.0;
     auto not_found_query_time = 0.0;
+    Dijkstra dijk{graph};
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found;
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found;
 
     utils::Timer my_timer;
     for(graph::Node from = 0; from < number_of_nodes; from++) {
@@ -43,14 +50,20 @@ auto queryAll(const graph::Graph &graph,
             my_timer.reset();
             auto selection_result = lookup.getSelectionAnswering(from, to);
             auto new_time = my_timer.elapsed();
+
+            auto dijkstra_rank = dijk.calculateDijkstraRank(from, to);
             // auto oracle_result = oracle.findDistance(from, to);
 
             if(selection_result) {
                 found++;
                 found_query_time += new_time;
+                per_dijkstra_rank_found[dijkstra_rank].first += new_time;
+                per_dijkstra_rank_found[dijkstra_rank].second++;
             } else {
                 not_found++;
                 not_found_query_time += new_time;
+                per_dijkstra_rank_not_found[dijkstra_rank].first += new_time;
+                per_dijkstra_rank_not_found[dijkstra_rank].second++;
             }
         }
     }
@@ -73,12 +86,35 @@ auto queryAll(const graph::Graph &graph,
 
     auto elapsed = my_timer.elapsed();
 
-    fmt::print("{} \t {} \t {} \t {}\n",
+    fmt::print("{} \t {} \t {} \t {} \t {}\n\n",
                found_query_time / found,
                not_found_query_time / not_found,
                static_cast<double>(found) / static_cast<double>(not_found + found),
+               all_found,
                elapsed / (all_found + all_not_found));
+
+    return std::pair{per_dijkstra_rank_found,
+                     per_dijkstra_rank_not_found};
 }
+
+auto writeDijkstraRankToFile(
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found,
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found,
+    const std::string &filename) noexcept
+    -> void
+{
+    std::ofstream found{filename + "_found"};
+    for(auto [rank, pair] : per_dijkstra_rank_found) {
+        found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+    }
+
+
+    std::ofstream not_found{filename + "_not_found"};
+    for(auto [rank, pair] : per_dijkstra_rank_not_found) {
+        not_found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+    }
+}
+
 
 template<class DistanceOracle>
 auto mergeSelections(std::vector<NodeSelection> &&selections,
@@ -141,7 +177,7 @@ auto writeToFiles(const graph::Graph &graph,
 template<class DistanceOracle>
 auto runSelection(const graph::Graph &graph,
                   const DistanceOracle &distance_oracle,
-                  std::string_view result_folder,
+                  const std::string &result_folder,
                   graph::Distance prune_distance,
                   std::size_t max_selections)
 {
@@ -155,12 +191,12 @@ auto runSelection(const graph::Graph &graph,
                                              std::move(center_calculator),
                                              prune_distance};
 
-	utils::Timer t;
+    utils::Timer t;
 
-	t.reset();
+    t.reset();
     auto selections = selection_calculator.calculateFullNodeSelection();
-	auto time = t.elapsed();
-	fmt::print("{} \t ", time);
+    auto time = t.elapsed();
+    fmt::print("{} \t ", time);
 
 
 
@@ -181,7 +217,13 @@ auto runSelection(const graph::Graph &graph,
 
     auto lookup = std::move(optimizer).getLookup();
 
-    queryAll(graph, distance_oracle, lookup);
+    auto [found, not_found] = queryAll(graph, distance_oracle, lookup);
+
+    writeDijkstraRankToFile(found,
+                            not_found,
+                            result_folder
+                                + "dijkstra_rank_"
+                                + std::to_string(max_selections));
 }
 
 auto main(int argc, char *argv[]) -> int
