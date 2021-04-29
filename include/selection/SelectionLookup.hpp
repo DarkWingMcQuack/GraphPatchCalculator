@@ -44,6 +44,9 @@ public:
     [[nodiscard]] auto getSizeDistributionTotal() const noexcept
         -> std::map<std::size_t, std::size_t>;
 
+    [[nodiscard]] auto averageSelectionsPerNode() const noexcept
+        -> double;
+
     auto toFile(std::string_view path) const noexcept
         -> void;
 

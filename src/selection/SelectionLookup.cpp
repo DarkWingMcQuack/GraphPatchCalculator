@@ -165,6 +165,26 @@ auto SelectionLookup::getSizeDistributionTotal() const noexcept
     return ret_map;
 }
 
+auto SelectionLookup::averageSelectionsPerNode() const noexcept
+    -> double
+{
+    auto selections_total = std::accumulate(std::begin(source_selections_),
+                                            std::end(source_selections_),
+                                            0,
+                                            [](auto current, const auto& s) {
+                                                return current + s.size();
+                                            })
+        + std::accumulate(std::begin(target_selections_),
+                          std::end(target_selections_),
+                          0,
+                          [](auto current, const auto& s) {
+                              return current + s.size();
+                          });
+
+    return static_cast<double>(selections_total)
+        / static_cast<double>(number_of_nodes_);
+}
+
 
 template<>
 struct fmt::formatter<std::pair<std::size_t, graph::Distance>> : fmt::formatter<std::string_view>
