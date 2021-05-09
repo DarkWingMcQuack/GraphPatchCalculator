@@ -33,7 +33,7 @@ public:
 
     [[nodiscard]] auto getSelectionAnswering(const graph::Node& source,
                                              const graph::Node& target) const noexcept
-        -> std::optional<std::pair<graph::Node, graph::Distance>>;
+        -> std::optional<graph::Distance>;
 
     [[nodiscard]] auto getSizeDistributionSource() const noexcept
         -> std::map<std::size_t, std::size_t>;
@@ -55,7 +55,7 @@ private:
                                        graph::Node target,
                                        const CenterSet& first,
                                        const CenterSet& second) const noexcept
-        -> std::optional<std::pair<graph::Node, graph::Distance>>;
+        -> std::optional<graph::Distance>;
 
 
 private:

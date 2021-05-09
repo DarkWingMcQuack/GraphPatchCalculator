@@ -123,7 +123,6 @@ auto writeDijkstraRankToFile(
         found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
     }
 
-
     std::ofstream not_found{filename + "_not_found"};
     for(auto [rank, pair] : per_dijkstra_rank_not_found_runtime) {
         not_found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
@@ -227,7 +226,7 @@ auto runSelection(const graph::Graph &graph,
                   return lhs.weight() < rhs.weight();
               });
 
-    // writeToFiles(graph, result_folder, selections);
+    writeToFiles(graph, result_folder, selections);
 
     t.reset();
     selection::SelectionOptimizer optimizer{graph.size(),

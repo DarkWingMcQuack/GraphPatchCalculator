@@ -30,7 +30,7 @@ SelectionLookup::SelectionLookup(std::size_t number_of_nodes,
 
 auto SelectionLookup::getSelectionAnswering(const graph::Node& source,
                                             const graph::Node& target) const noexcept
-    -> std::optional<std::pair<graph::Node, graph::Distance>>
+    -> std::optional<graph::Distance>
 {
     const auto& first_source_selections = source_selections_[source];
     const auto& second_target_selections = target_selections_[target];
@@ -45,61 +45,81 @@ auto SelectionLookup::getCommonCenter(graph::Node source,
                                       graph::Node target,
                                       const CenterSet& first,
                                       const CenterSet& second) const noexcept
-    -> std::optional<std::pair<graph::Node, graph::Distance>>
+    -> std::optional<graph::Distance>
 {
-    auto iter1 = std::cbegin(first);
-    auto iter2 = std::cbegin(second);
-    auto iter1_end = std::cend(first);
-    auto iter2_end = std::cend(second);
+    // auto iter1 = std::cbegin(first);
+    // auto iter2 = std::cbegin(second);
+    // auto iter1_end = std::cend(first);
+    // auto iter2_end = std::cend(second);
 
-    while(iter1 != iter1_end and iter2 != iter2_end) {
-        auto center1 = centers_[iter1->first];
+    auto first_size = first.size();
+    auto second_size = second.size();
+    auto first_idx = 0;
+    auto second_idx = 0;
 
-        if(center1 == target) {
-            auto distance = iter1->second;
-            return std::pair{center1, distance};
+    while(first_idx < first_size and second_idx < second_size) {
+        auto f_i = first[first_idx].first;
+        auto s_i = second[second_idx].first;
+
+        if(f_i == s_i) {
+            return first[first_idx].second + second[second_idx].second;
         }
 
-        auto center2 = centers_[iter2->first];
-        if(center2 == source) {
-            auto distance = iter2->second;
-            return std::pair{center2, distance};
-        }
-
-        if(iter1->first < iter2->first) {
-            ++iter1;
-        } else if(iter2->first < iter1->first) {
-            ++iter2;
+        if(f_i < s_i) {
+            first_idx++;
         } else {
-            auto common_center = centers_[iter2->first];
-            auto distance = iter1->second + iter2->second;
-            return std::pair{common_center, distance};
+            second_idx++;
         }
     }
 
-    if(iter1 != iter1_end) {
-        while(iter1 != iter1_end) {
-            auto center1 = centers_[iter1->first];
-            if(center1 == target) {
-                auto distance = iter1->second;
-                return std::pair{center1, distance};
-            }
+    // while(iter1 != iter1_end and iter2 != iter2_end) {
+    //     auto center1 = centers_[iter1->first];
 
-            iter1++;
-        }
-    }
+    //     if(center1 == target) {
+    //         auto distance = iter1->second;
+    //         return std::pair{center1, distance};
+    //     }
 
-    if(iter2 != iter2_end) {
-        while(iter2 != iter2_end) {
-            auto center2 = centers_[iter2->first];
-            if(center2 == source) {
-                auto distance = iter2->second;
-                return std::pair{center2, distance};
-            }
+    //     auto center2 = centers_[iter2->first];
+    //     if(center2 == source) {
+    //         auto distance = iter2->second;
+    //         return std::pair{center2, distance};
+    //     }
 
-            iter2++;
-        }
-    }
+    //     if(iter1->first < iter2->first) {
+    //         ++iter1;
+    //     } else if(iter2->first < iter1->first) {
+    //         ++iter2;
+    //     } else {
+    //         auto common_center = centers_[iter2->first];
+    //         auto distance = iter1->second + iter2->second;
+    //         return std::pair{common_center, distance};
+    //     }
+    // }
+
+    // if(iter1 != iter1_end) {
+    //     while(iter1 != iter1_end) {
+    //         auto center1 = centers_[iter1->first];
+    //         if(center1 == target) {
+    //             auto distance = iter1->second;
+    //             return std::pair{center1, distance};
+    //         }
+
+    //         iter1++;
+    //     }
+    // }
+
+    // if(iter2 != iter2_end) {
+    //     while(iter2 != iter2_end) {
+    //         auto center2 = centers_[iter2->first];
+    //         if(center2 == source) {
+    //             auto distance = iter2->second;
+    //             return std::pair{center2, distance};
+    //         }
+
+    //         iter2++;
+    //     }
+    // }
 
     return std::nullopt;
 }

@@ -189,9 +189,9 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
             continue;
         }
 
-		if(counter++ >= max_number_of_selections_){
-		  break;
-		}
+        if(counter++ >= max_number_of_selections_) {
+            break;
+        }
 
         const auto& target_nodes = selections_[idx].getTargetPatch();
 
@@ -213,10 +213,10 @@ auto SelectionOptimizer::optimizeLeft(graph::Node node) noexcept
             covered_nodes.insert(target);
         }
 
-        if(selections_[next_selection_idx].getCenter() != node) {
-            keep_list_left_.emplace(next_selection_idx);
-            counter++;
-        }
+        // if(selections_[next_selection_idx].getCenter() != node) {
+        keep_list_left_.emplace(next_selection_idx);
+        counter++;
+        // }
         new_selection_set.emplace(next_selection_idx);
     }
 
@@ -254,9 +254,9 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
             continue;
         }
 
-		if(counter++ >= max_number_of_selections_){
-		  break;
-		}
+        if(counter++ >= max_number_of_selections_) {
+            break;
+        }
 
         const auto& source_nodes = selections_[idx].getSourcePatch();
 
@@ -278,10 +278,10 @@ auto SelectionOptimizer::optimizeRight(graph::Node node) noexcept
             covered_nodes.insert(source);
         }
 
-        if(selections_[next_selection_idx].getCenter() != node) {
-            new_selection_set.emplace(next_selection_idx);
-            counter++;
-        }
+        // if(selections_[next_selection_idx].getCenter() != node) {
+        new_selection_set.emplace(next_selection_idx);
+        counter++;
+        // }
         keep_list_right_.emplace(next_selection_idx);
     }
 
