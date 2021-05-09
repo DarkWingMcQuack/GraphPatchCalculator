@@ -73,7 +73,7 @@ auto queryAll(const graph::Graph &graph,
             auto oracle_result = oracle.findDistance(from, to);
             if(oracle_result != graph::UNREACHABLE) {
                 per_dijkstra_rank_found[dijkstra_rank].first++;
-            } 
+            }
         }
     }
 
@@ -112,9 +112,9 @@ auto queryAll(const graph::Graph &graph,
 }
 
 auto writeDijkstraRankToFile(
-    const std::map<std::size_t, std::pair<double, std::size_t>>& per_dijkstra_rank_found_runtime,
-    const std::map<std::size_t, std::pair<double, std::size_t>>& per_dijkstra_rank_not_found_runtime,
-    const std::map<std::size_t, std::pair<std::size_t, std::size_t>>& per_dijkstra_rank_found,
+    const std::map<std::size_t, std::pair<double, std::size_t>> &per_dijkstra_rank_found_runtime,
+    const std::map<std::size_t, std::pair<double, std::size_t>> &per_dijkstra_rank_not_found_runtime,
+    const std::map<std::size_t, std::pair<std::size_t, std::size_t>> &per_dijkstra_rank_found,
     const std::string &filename) noexcept
     -> void
 {
@@ -130,10 +130,10 @@ auto writeDijkstraRankToFile(
 
     std::ofstream found_existing{filename + "_found_vs_existing"};
     for(auto [rank, pair] : per_dijkstra_rank_found) {
-	  found_existing << rank
-					 << "\t:\t"
-					 << (static_cast<double>(pair.second) / static_cast<double>(pair.first))
-					 << "\n";
+        found_existing << rank
+                       << "\t:\t"
+                       << (static_cast<double>(pair.second) / static_cast<double>(pair.first))
+                       << "\n";
     }
 }
 
@@ -245,7 +245,7 @@ auto runSelection(const graph::Graph &graph,
 
     writeDijkstraRankToFile(found,
                             not_found,
-							found_existing,
+                            found_existing,
                             result_folder
                                 + "dijkstra_rank_"
                                 + std::to_string(max_selections));
