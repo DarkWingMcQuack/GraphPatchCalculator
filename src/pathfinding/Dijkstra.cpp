@@ -171,6 +171,10 @@ auto Dijkstra::calculateDijkstraRank(graph::Node source, graph::Node target) noe
     while(!pq_.empty()) {
         auto [current_node, current_dist] = pq_.top();
 
+        if(isSettled(current_node)) {
+            continue;
+        }
+
         rank_[current_node] = current_rank_++;
         settle(current_node);
 
