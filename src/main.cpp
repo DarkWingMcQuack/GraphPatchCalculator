@@ -87,18 +87,24 @@ auto queryAll(const graph::Graph &graph,
         }
     }
 
-    oracle.destroy();
-
     auto elapsed = timer.elapsed();
 
     auto all_queries = createRankQueries(graph);
 
     std::vector<std::vector<std::pair<graph::Node, graph::Node>>> found_queries(graph.size());
     std::vector<std::vector<std::pair<graph::Node, graph::Node>>> not_found_queries(graph.size());
+    std::map<std::size_t, std::pair<std::size_t, std::size_t>> per_dijkstra_rank_found;
     for(int rank = 0; rank < number_of_nodes; rank++) {
         for(auto [from, to] : all_queries[rank]) {
+
+            auto oracle_result = oracle.findDistance(from, to);
+            if(oracle_result != graph::UNREACHABLE) {
+                per_dijkstra_rank_found[rank].first++;
+            }
+
             if(lookup.getSelectionAnswering(from, to) != graph::UNREACHABLE) {
                 found_queries[rank].emplace_back(from, to);
+                per_dijkstra_rank_found[rank].second++;
             } else {
                 not_found_queries[rank].emplace_back(from, to);
             }
@@ -112,7 +118,6 @@ auto queryAll(const graph::Graph &graph,
 
     std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found_runtime;
     std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found_runtime;
-    std::map<std::size_t, std::pair<std::size_t, std::size_t>> per_dijkstra_rank_found;
 
     auto counter = 0;
     auto found = 0ul;
@@ -129,7 +134,6 @@ auto queryAll(const graph::Graph &graph,
 
         per_dijkstra_rank_found_runtime[rank].first = time;
         per_dijkstra_rank_found_runtime[rank].second = found_queries[rank].size();
-        per_dijkstra_rank_found[rank].first += found_queries[rank].size();
         found += found_queries[rank].size();
         found_query_time += time;
 
@@ -145,8 +149,8 @@ auto queryAll(const graph::Graph &graph,
         not_found += not_found_queries[rank].size();
 
 
-		utils::cleanAndFree(found_queries[rank]);
-		utils::cleanAndFree(not_found_queries[rank]);
+        utils::cleanAndFree(found_queries[rank]);
+        utils::cleanAndFree(not_found_queries[rank]);
     }
 
 
