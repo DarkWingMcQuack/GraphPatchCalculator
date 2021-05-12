@@ -161,8 +161,8 @@ auto Dijkstra::calculateDijkstraRank(graph::Node source, graph::Node target) noe
     }
 
     if(source != last_source_) {
-        last_source_ = source;
         reset();
+        last_source_ = source;
         pq_.emplace(source, 0l);
         setDistanceTo(source, 0);
         touched_.emplace_back(source);
@@ -171,12 +171,10 @@ auto Dijkstra::calculateDijkstraRank(graph::Node source, graph::Node target) noe
     while(!pq_.empty()) {
         auto [current_node, current_dist] = pq_.top();
 
-        if(isSettled(current_node)) {
-            continue;
+        if(!isSettled(current_node)) {
+            rank_[current_node] = current_rank_++;
         }
 
-        rank_[current_node] = current_rank_++;
-        settle(current_node);
 
         if(current_node == target) {
             return rank_[current_node];
@@ -185,6 +183,12 @@ auto Dijkstra::calculateDijkstraRank(graph::Node source, graph::Node target) noe
         //pop after the return, otherwise we loose a value
         //when reusing the pq
         pq_.pop();
+
+        if(isSettled(current_node)) {
+            continue;
+        }
+
+        settle(current_node);
 
         auto neigbours = graph_.getForwardNeigboursOf(current_node);
 
