@@ -128,7 +128,7 @@ auto queryAll(const graph::Graph &graph,
         auto time = timer.elapsed();
 
         per_dijkstra_rank_found_runtime[rank].first = time;
-        per_dijkstra_rank_found_runtime[rank].first = found_queries[rank].size();
+        per_dijkstra_rank_found_runtime[rank].second = found_queries[rank].size();
         per_dijkstra_rank_found[rank].first += found_queries[rank].size();
         found += found_queries[rank].size();
         found_query_time += time;
@@ -140,7 +140,7 @@ auto queryAll(const graph::Graph &graph,
         time = timer.elapsed();
 
         per_dijkstra_rank_not_found_runtime[rank].first = time;
-        per_dijkstra_rank_not_found_runtime[rank].first = not_found_queries[rank].size();
+        per_dijkstra_rank_not_found_runtime[rank].second = not_found_queries[rank].size();
         not_found_query_time += time;
         not_found += not_found_queries[rank].size();
 
