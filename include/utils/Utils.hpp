@@ -240,5 +240,11 @@ struct Overloaded : Ts...
 template<class... Ts>
 Overloaded(Ts...) -> Overloaded<Ts...>;
 
+template<class T>
+auto cleanAndFree(std::vector<T>& vec) noexcept
+{
+    std::vector<T>().swap(vec);
+}
+
 
 } // namespace utils

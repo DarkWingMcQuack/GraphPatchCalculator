@@ -15,8 +15,6 @@
 namespace selection {
 
 using CenterSet = std::vector<std::pair<std::size_t, graph::Distance>>;
-using InversableCenterSet = std::vector<std::tuple<std::size_t, graph::Distance, bool>>;
-
 
 class SelectionLookup
 {
@@ -33,7 +31,7 @@ public:
 
     [[nodiscard]] auto getSelectionAnswering(const graph::Node& source,
                                              const graph::Node& target) const noexcept
-        -> std::optional<graph::Distance>;
+        -> graph::Distance;
 
     [[nodiscard]] auto getSizeDistributionSource() const noexcept
         -> std::map<std::size_t, std::size_t>;
@@ -51,13 +49,6 @@ public:
         -> void;
 
 private:
-    [[nodiscard]] auto getCommonCenter(graph::Node source,
-                                       graph::Node target,
-                                       const CenterSet& first,
-                                       const CenterSet& second) const noexcept
-        -> std::optional<graph::Distance>;
-
-
 private:
     std::size_t number_of_nodes_;
     std::vector<graph::Node> centers_;

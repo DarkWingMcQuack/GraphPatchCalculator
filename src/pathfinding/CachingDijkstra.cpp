@@ -1,3 +1,4 @@
+#include "utils/Utils.hpp"
 #include <fmt/ostream.h>
 #include <functional>
 #include <graph/Graph.hpp>
@@ -27,7 +28,7 @@ CachingDijkstra::CachingDijkstra(const graph::Graph& graph) noexcept
 {
     for(auto from : utils::range(graph_.size())) {
         for(auto to : utils::range(graph.size())) {
-			distance_cache_[from][to] = computeDistance(from, to);
+            distance_cache_[from][to] = computeDistance(from, to);
         }
     }
 
@@ -57,11 +58,10 @@ auto CachingDijkstra::insertCache(graph::Node source,
 auto CachingDijkstra::destroy() noexcept
     -> void
 {
-    distances_.clear();
-    settled_.clear();
-    touched_.clear();
-    pq_ = DijkstraQueue{DijkstraQueueComparer{}};
-    distance_cache_.clear();
+    utils::cleanAndFree(distances_);
+    utils::cleanAndFree(settled_);
+    utils::cleanAndFree(touched_);
+    utils::cleanAndFree(distance_cache_);
 }
 
 

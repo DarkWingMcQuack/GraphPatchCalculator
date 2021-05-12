@@ -10,6 +10,7 @@
 #include <selection/NodeSelection.hpp>
 #include <selection/NodeSelectionCalculator.hpp>
 #include <utils/Range.hpp>
+#include <utils/Utils.hpp>
 #include <vector>
 
 namespace selection {
@@ -44,7 +45,7 @@ public:
             }
 
             if(empty) {
-                all_to_all_[first].clear();
+                utils::cleanAndFree(all_to_all_[first]);
             }
         }
     }
@@ -56,7 +57,7 @@ public:
 
         while(!done()) {
 
-		  auto [first, second] = getRandomRemainingPair();
+            auto [first, second] = getRandomRemainingPair();
 
             auto selection_opt = node_selector_.calculateFullSelection(first, second);
             if(!selection_opt) {
@@ -195,7 +196,7 @@ private:
                                 std::end(all_to_all_[n]),
                                 [](auto x) { return x; });
         if(done) {
-            all_to_all_[n].clear();
+            utils::cleanAndFree(all_to_all_[n]);
         }
     }
 

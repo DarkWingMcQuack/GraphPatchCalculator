@@ -23,64 +23,54 @@ using selection::FullNodeSelectionCalculator;
 namespace fs = std::filesystem;
 
 
-template<class DistanceOracle>
-auto queryAll(const graph::Graph &graph,
-              const DistanceOracle &oracle,
-              const selection::SelectionLookup &lookup) noexcept
-    -> std::tuple<
-        std::map<std::size_t, std::pair<double, std::size_t>>,
-        std::map<std::size_t, std::pair<double, std::size_t>>,
-        std::map<std::size_t, std::pair<std::size_t, std::size_t>>>
+auto createRankQueries(const graph::Graph &graph) noexcept
+    -> std::vector<std::vector<std::pair<graph::Node, graph::Node>>>
 {
+    Dijkstra dijkstra{graph};
     auto number_of_nodes = graph.size();
-    auto found = 0ul;
-    auto not_found = 0ul;
-    auto found_query_time = 0.0;
-    auto not_found_query_time = 0.0;
-    Dijkstra dijk{graph};
 
-    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found_runtime;
-    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found_runtime;
-    std::map<std::size_t, std::pair<std::size_t, std::size_t>> per_dijkstra_rank_found;
+    std::vector<std::vector<std::pair<graph::Node, graph::Node>>> queries;
+    queries.resize(number_of_nodes);
 
-    utils::Timer my_timer;
     for(graph::Node from = 0; from < number_of_nodes; from++) {
         for(graph::Node to = 0; to < number_of_nodes; to++) {
             if(from == to) {
                 continue;
             }
 
-            my_timer.reset();
-            auto selection_result = lookup.getSelectionAnswering(from, to);
-            auto new_time = my_timer.elapsed();
-
-            auto dijkstra_rank = dijk.calculateDijkstraRank(from, to);
-            // auto oracle_result = oracle.findDistance(from, to);
-
-            if(selection_result) {
-                found++;
-                found_query_time += new_time;
-                per_dijkstra_rank_found_runtime[dijkstra_rank].first += new_time;
-                per_dijkstra_rank_found_runtime[dijkstra_rank].second++;
-                per_dijkstra_rank_found[dijkstra_rank].second++;
-            } else {
-                not_found++;
-                not_found_query_time += new_time;
-                per_dijkstra_rank_not_found_runtime[dijkstra_rank].first += new_time;
-                per_dijkstra_rank_not_found_runtime[dijkstra_rank].second++;
-            }
-
-            auto oracle_result = oracle.findDistance(from, to);
-            if(oracle_result != graph::UNREACHABLE) {
-                per_dijkstra_rank_found[dijkstra_rank].first++;
+            auto rank = dijkstra.calculateDijkstraRank(from, to);
+            if(rank < number_of_nodes) {
+                queries[rank].emplace_back(from, to);
             }
         }
     }
 
+    std::random_device rd;
+    std::mt19937 g(rd());
+    for(auto &v : queries) {
+        std::shuffle(std::begin(v),
+                     std::end(v),
+                     g);
+    }
 
+    return queries;
+}
+
+template<class DistanceOracle>
+auto queryAll(const graph::Graph &graph,
+              DistanceOracle &oracle,
+              const selection::SelectionLookup &lookup) noexcept
+    -> std::tuple<
+        std::map<std::size_t, std::pair<double, std::size_t>>,
+        std::map<std::size_t, std::pair<double, std::size_t>>,
+        std::map<std::size_t, std::pair<std::size_t, std::size_t>>>
+{
+    utils::Timer timer;
+    auto number_of_nodes = graph.size();
     auto all_found = 0ul;
     auto all_not_found = 0ul;
-    my_timer.reset();
+
+    timer.reset();
     for(graph::Node from = 0; from < number_of_nodes; from++) {
         for(graph::Node to = 0; to < number_of_nodes; to++) {
             auto oracle_result = oracle.findDistance(from, to);
@@ -97,7 +87,70 @@ auto queryAll(const graph::Graph &graph,
         }
     }
 
-    auto elapsed = my_timer.elapsed();
+    oracle.destroy();
+
+    auto elapsed = timer.elapsed();
+
+    auto all_queries = createRankQueries(graph);
+
+    std::vector<std::vector<std::pair<graph::Node, graph::Node>>> found_queries(graph.size());
+    std::vector<std::vector<std::pair<graph::Node, graph::Node>>> not_found_queries(graph.size());
+    for(int rank = 0; rank < number_of_nodes; rank++) {
+        for(auto [from, to] : all_queries[rank]) {
+            if(lookup.getSelectionAnswering(from, to) != graph::UNREACHABLE) {
+                found_queries[rank].emplace_back(from, to);
+            } else {
+                not_found_queries[rank].emplace_back(from, to);
+            }
+        }
+
+        all_queries[rank].clear();
+        all_queries[rank].shrink_to_fit();
+    }
+    all_queries.clear();
+    all_queries.shrink_to_fit();
+
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found_runtime;
+    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found_runtime;
+    std::map<std::size_t, std::pair<std::size_t, std::size_t>> per_dijkstra_rank_found;
+
+    auto counter = 0;
+    auto found = 0ul;
+    auto not_found = 0ul;
+    auto found_query_time = 0.0;
+    auto not_found_query_time = 0.0;
+    for(int rank = 0; rank < number_of_nodes; rank++) {
+
+        timer.reset();
+        for(auto [from, to] : found_queries[rank]) {
+            counter += lookup.getSelectionAnswering(from, to);
+        }
+        auto time = timer.elapsed();
+
+        per_dijkstra_rank_found_runtime[rank].first = time;
+        per_dijkstra_rank_found_runtime[rank].first = found_queries[rank].size();
+        per_dijkstra_rank_found[rank].first += found_queries[rank].size();
+        found += found_queries[rank].size();
+        found_query_time += time;
+
+        timer.reset();
+        for(auto [from, to] : not_found_queries[rank]) {
+            counter += lookup.getSelectionAnswering(from, to);
+        }
+        time = timer.elapsed();
+
+        per_dijkstra_rank_not_found_runtime[rank].first = time;
+        per_dijkstra_rank_not_found_runtime[rank].first = not_found_queries[rank].size();
+        not_found_query_time += time;
+        not_found += not_found_queries[rank].size();
+
+
+		utils::cleanAndFree(found_queries[rank]);
+		utils::cleanAndFree(not_found_queries[rank]);
+    }
+
+
+
 
     fmt::print("{} \t {} \t {} \t {} \t {}\n",
                found_query_time / found,
@@ -110,6 +163,7 @@ auto queryAll(const graph::Graph &graph,
                       per_dijkstra_rank_not_found_runtime,
                       per_dijkstra_rank_found};
 }
+
 
 auto writeDijkstraRankToFile(
     const std::map<std::size_t, std::pair<double, std::size_t>> &per_dijkstra_rank_found_runtime,
@@ -198,7 +252,7 @@ auto writeToFiles(const graph::Graph &graph,
 
 template<class DistanceOracle>
 auto runSelection(const graph::Graph &graph,
-                  const DistanceOracle &distance_oracle,
+                  DistanceOracle &distance_oracle,
                   const std::string &result_folder,
                   graph::Distance prune_distance,
                   std::size_t max_selections)
