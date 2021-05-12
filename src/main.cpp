@@ -110,13 +110,14 @@ auto queryAll(const graph::Graph &graph,
             }
         }
 
-        all_queries[rank].clear();
-        all_queries[rank].shrink_to_fit();
+        utils::cleanAndFree(all_queries[rank]);
     }
-    all_queries.clear();
-    all_queries.shrink_to_fit();
+    utils::cleanAndFree(all_queries);
+    oracle.destroy();
 
-    std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_found_runtime;
+
+    std::map<std::size_t, std::pair<double, std::size_t>>
+        per_dijkstra_rank_found_runtime;
     std::map<std::size_t, std::pair<double, std::size_t>> per_dijkstra_rank_not_found_runtime;
 
     auto counter = 0;
