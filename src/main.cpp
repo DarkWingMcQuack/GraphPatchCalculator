@@ -179,20 +179,26 @@ auto writeDijkstraRankToFile(
 {
     std::ofstream found{filename + "_found"};
     for(auto [rank, pair] : per_dijkstra_rank_found_runtime) {
-        found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+        if(pair.second > 0) {
+            found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+        }
     }
 
     std::ofstream not_found{filename + "_not_found"};
     for(auto [rank, pair] : per_dijkstra_rank_not_found_runtime) {
-        not_found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+        if(pair.second > 0) {
+            not_found << rank << "\t:\t" << (pair.first / pair.second) << "\n";
+        }
     }
 
     std::ofstream found_existing{filename + "_found_vs_existing"};
     for(auto [rank, pair] : per_dijkstra_rank_found) {
-        found_existing << rank
-                       << "\t:\t"
-                       << (static_cast<double>(pair.second) / static_cast<double>(pair.first))
-                       << "\n";
+        if(pair.first > 0) {
+            found_existing << rank
+                           << "\t:\t"
+                           << (static_cast<double>(pair.second) / static_cast<double>(pair.first))
+                           << "\n";
+        }
     }
 }
 
