@@ -291,7 +291,7 @@ auto runSelection(const graph::Graph &graph,
                   return lhs.weight() < rhs.weight();
               });
 
-    writeToFiles(graph, result_folder, selections);
+    // writeToFiles(graph, result_folder, selections);
 
     t.reset();
     selection::SelectionOptimizer optimizer{graph.size(),
