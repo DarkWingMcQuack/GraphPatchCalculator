@@ -86,8 +86,10 @@ auto queryAll(const graph::Graph &graph,
             }
         }
     }
-
     auto elapsed = timer.elapsed();
+
+    oracle.destroy();
+	oracle.~DistanceOracle();
 
     auto all_queries = createRankQueries(graph);
 
@@ -96,12 +98,6 @@ auto queryAll(const graph::Graph &graph,
     std::map<std::size_t, std::pair<std::size_t, std::size_t>> per_dijkstra_rank_found;
     for(int rank = 0; rank < number_of_nodes; rank++) {
         for(auto [from, to] : all_queries[rank]) {
-
-            auto oracle_result = oracle.findDistance(from, to);
-            if(oracle_result != graph::UNREACHABLE) {
-                per_dijkstra_rank_found[rank].first++;
-            }
-
             if(lookup.getSelectionAnswering(from, to) != graph::UNREACHABLE) {
                 found_queries[rank].emplace_back(from, to);
                 per_dijkstra_rank_found[rank].second++;
@@ -110,10 +106,11 @@ auto queryAll(const graph::Graph &graph,
             }
         }
 
+		per_dijkstra_rank_found[rank].first = all_queries[rank].size();
+
         utils::cleanAndFree(all_queries[rank]);
     }
     utils::cleanAndFree(all_queries);
-    oracle.destroy();
 
 
     std::map<std::size_t, std::pair<double, std::size_t>>
